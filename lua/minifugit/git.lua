@@ -22,6 +22,11 @@
 ---@field remote string
 ---@field ref string
 
+---@class GitFileChangeCounts
+---@field added integer
+---@field modified integer
+---@field deleted integer
+
 ---@class GitStatusSnapshot
 ---@field branch string
 ---@field entries GitStatusEntry[]
@@ -693,11 +698,113 @@ local function parse_diff(diff)
     return vim.split(diff, '\n', { plain = true })
 end
 
+---@return GitFileChangeCounts
+local function empty_change_counts()
+    return { added = 0, modified = 0, deleted = 0 }
+end
+
+---@param counts GitFileChangeCounts
+---@param removed integer
+---@param added integer
+local function add_diff_block_counts(counts, removed, added)
+    local modified = math.min(removed, added)
+
+    counts.modified = counts.modified + modified
+    counts.deleted = counts.deleted + removed - modified
+    counts.added = counts.added + added - modified
+end
+
+---@param diff string
+---@return GitFileChangeCounts
+local function parse_change_counts(diff)
+    local counts = empty_change_counts()
+    local removed = 0
+    local added = 0
+
+    local function flush_block()
+        if removed > 0 or added > 0 then
+            add_diff_block_counts(counts, removed, added)
+            removed = 0
+            added = 0
+        end
+    end
+
+    for _, line in ipairs(parse_diff(diff)) do
+        local prefix = line:sub(1, 1)
+
+        if line:sub(1, 3) == '+++' or line:sub(1, 3) == '---' then
+            flush_block()
+        elseif prefix == '-' then
+            removed = removed + 1
+        elseif prefix == '+' then
+            added = added + 1
+        else
+            flush_block()
+        end
+    end
+
+    flush_block()
+
+    return counts
+end
+
 ---@param path string
+---@param root string
+---@return string?
+local function normalize_path(path, root)
+    if path == '' then
+        return nil
+    end
+
+    local absolute = vim.fs.normalize(vim.fn.fnamemodify(path, ':p'))
+    local normalized_root = vim.fs.normalize(root)
+
+    if absolute == normalized_root then
+        return '.'
+    end
+
+    local relative = vim.fs.relpath(normalized_root, absolute)
+
+    if
+        relative ~= nil
+        and relative ~= '..'
+        and relative:sub(1, 3) ~= '../'
+        and relative:sub(1, 3) ~= '..\\'
+    then
+        return relative
+    end
+
+    return path
+end
+
+---@param path string
+---@return boolean
+local function is_absolute_path(path)
+    return path:sub(1, 1) == '/'
+        or path:sub(1, 1) == '\\'
+        or path:match('^%a:[/\\]') ~= nil
+end
+
+---@param path string
+---@param root string
+---@return uv.fs_stat.result?
+local function fs_stat_path(path, root)
+    local full_path = path
+
+    if not is_absolute_path(path) then
+        full_path = vim.fs.joinpath(root, path)
+    end
+
+    return vim.uv.fs_stat(vim.fs.normalize(full_path))
+end
+
+---@param path string
+---@param root string?
 ---@return string[]
 ---@return string?
-local function read_worktree_lines(path)
-    local root = git.root()
+local function read_worktree_lines(path, root)
+    root = root or git.root()
+
     local full_path = root ~= '' and vim.fs.joinpath(root, path) or path
     local stat = vim.uv.fs_stat(full_path)
 
@@ -863,6 +970,78 @@ function git.show_commit(commit)
     end
 
     return parse_diff(out.output), nil
+end
+
+---@param path string?
+---@return GitFileChangeCounts
+---@return string?
+function git.file_change_counts(path)
+    if not ensure_git() then
+        return empty_change_counts(), '`git` is not executable'
+    end
+
+    path = path or vim.api.nvim_buf_get_name(0)
+
+    local root = git.root()
+
+    if root == '' then
+        return empty_change_counts(), 'Not inside a git repository'
+    end
+
+    local relative_path = normalize_path(path, root)
+
+    if relative_path == nil then
+        return empty_change_counts(), 'No file path provided'
+    end
+
+    local stat = fs_stat_path(relative_path, root)
+
+    if stat ~= nil and stat.type == 'directory' then
+        return empty_change_counts(),
+            'File change counts are not available for directories'
+    end
+
+    local status_out = git.run(
+        { 'status', '--porcelain=v1', '-z', '--', relative_path },
+        { cwd = root, ignore_error = true }
+    )
+
+    if status_out.exit_code ~= 0 then
+        return empty_change_counts(), return_result(status_out)
+    end
+
+    local status_entries = parse_status(status_out.output)
+
+    if #status_entries > 1 then
+        return empty_change_counts(), 'Expected a file path, got multiple files'
+    end
+
+    if #status_entries == 1 and status_entries[1].unstaged == '?' then
+        local lines, err = read_worktree_lines(relative_path, root)
+
+        if err ~= nil then
+            return empty_change_counts(), err
+        end
+
+        return { added = #lines, modified = 0, deleted = 0 }, nil
+    end
+
+    local out = git.run(
+        { 'diff', '--no-ext-diff', '--unified=0', '--', relative_path },
+        { cwd = root, ignore_error = true }
+    )
+
+    if out.exit_code > 1 or (out.exit_code ~= 0 and out.output == '') then
+        return empty_change_counts(), return_result(out)
+    end
+
+    return parse_change_counts(out.output), nil
+end
+
+---@return GitFileChangeCounts
+---@return string?
+function git.current_file_change_counts()
+    return git.file_change_counts(vim.api.nvim_buf_get_name(0))
 end
 
 ---@param entry GitStatusEntry
