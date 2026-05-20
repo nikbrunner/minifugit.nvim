@@ -76,6 +76,11 @@ require('minifugit').setup({
 
         -- Minimum status window width in columns.
         min_width = 20,
+
+        -- Layout: 'topleft' (opens as a vsplit on the far left) or 'replace'
+        -- (replaces the current buffer, like Oil). In replace mode, o opens
+        -- the picked file in place and closes the status view.
+        layout = 'topleft',
     },
 })
 ```

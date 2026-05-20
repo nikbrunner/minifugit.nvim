@@ -66,6 +66,35 @@ function M.create_status_win(buf, opts)
     return win, prev_winopts
 end
 
+---@param buf Buffer
+---@param opts MinifugitStatusOptions
+---@return number
+---@return integer
+---@return GitStatusWindowOptions
+function M.replace_current_buffer(buf, opts)
+    local win = vim.api.nvim_get_current_win()
+    local prev_buf = vim.api.nvim_win_get_buf(win)
+    local prev_winopts = M.capture_winopts(win)
+
+    vim.api.nvim_win_set_buf(win, buf.id)
+    vim.api.nvim_set_current_win(win)
+    M.configure_status_win(win)
+
+    local width = status_win_width(opts)
+    pcall(vim.api.nvim_win_set_width, win, width)
+
+    log.info(
+        string.format(
+            'replaced buffer win=%d buf=%d prev_buf=%d',
+            win,
+            buf.id,
+            prev_buf
+        )
+    )
+
+    return win, prev_buf, prev_winopts
+end
+
 ---@param win number
 ---@return boolean
 local function has_winfixbuf(win)

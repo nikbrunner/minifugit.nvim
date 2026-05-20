@@ -8,6 +8,7 @@
 ---@class MinifugitStatusOptions
 ---@field width number
 ---@field min_width integer
+---@field layout 'topleft'|'replace'
 
 ---@class MinifugitOptions
 ---@field preview MinifugitPreviewOptions
@@ -24,6 +25,7 @@ local defaults = {
     status = {
         width = 0.4,
         min_width = 20,
+        layout = 'topleft',
     },
 }
 
@@ -197,6 +199,22 @@ function M.setup(opts)
         if opts.status.min_width ~= nil then
             if opts.status.min_width < 1 then
                 error('opts.status.min_width must be >= 1')
+            end
+        end
+
+        if opts.status.layout ~= nil then
+            vim.validate(
+                'opts.status.layout',
+                opts.status.layout,
+                'string',
+                true
+            )
+
+            if
+                opts.status.layout ~= 'topleft'
+                and opts.status.layout ~= 'replace'
+            then
+                error("opts.status.layout must be 'topleft' or 'replace'")
             end
         end
     end

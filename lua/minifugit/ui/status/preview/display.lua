@@ -274,6 +274,17 @@ function M.show_stacked(self, diff_lines, preview_key, title, actions)
     elseif window_state.has_open_stacked_diff(self) then
         target_win = assert(self.diff_win)
         vim.api.nvim_set_current_win(target_win)
+    elseif self.options.status.layout == 'replace' then
+        -- In replace mode, split to the right of the status window so
+        -- the diff opens adjacent to status, not somewhere else.
+        target_win =
+            create_preview_split(self, 'rightbelow vsplit', status_winfixwidth)
+
+        if target_win == nil then
+            return false
+        end
+
+        created_win = true
     else
         target_win = window.find_target_win(self)
 
@@ -403,6 +414,16 @@ function M.show_split(self, split_diff, diff_lines, preview_key, title, actions)
         -- point at the same window and corrupt the two-window layout.
         target_win = assert(self.diff_left_win)
         vim.api.nvim_set_current_win(target_win)
+    elseif self.options.status.layout == 'replace' then
+        -- In replace mode, split to the right of the status window.
+        target_win =
+            create_preview_split(self, 'rightbelow vsplit', status_winfixwidth)
+
+        if target_win == nil then
+            return false
+        end
+
+        left_created = true
     else
         target_win = window.find_target_win(self)
 
