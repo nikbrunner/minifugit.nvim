@@ -675,7 +675,6 @@ function GitStatusWindow:render_cached()
 
     vim.bo[self.buf.id].modifiable = true
     self.buf:set_lines(render.text_lines(self.lines))
-    vim.bo[self.buf.id].modifiable = false
     render.apply(self.buf.id, self.lines)
 end
 
