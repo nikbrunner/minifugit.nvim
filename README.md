@@ -114,7 +114,7 @@ Default status-window mappings:
 | n | `D` | Discard entry without confirmation |
 | n | `c` | Commit staged changes |
 | n | `p` | Push unpushed commits |
-| n | `as` | Alternate stacked/split diff layout |
+| n | `al` | Alternate stacked/split diff layout |
 | n | `?` | Toggle help |
 
 Default diff-preview mappings:
@@ -127,6 +127,6 @@ Default diff-preview mappings:
 | n | `u` | Unstage current staged hunk |
 | n | `d` | Discard current unstaged hunk with confirmation |
 | n | `aw` | Alternate wrap |
-| n | `al` | Alternate line numbers |
+| n | `an` | Alternate line numbers |
 | n | `am` | Alternate metadata rows *(stacked only)* |
-| n | `as` | Alternate stacked/split layout |
+| n | `al` | Alternate stacked/split layout |
