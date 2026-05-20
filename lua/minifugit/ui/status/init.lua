@@ -520,8 +520,9 @@ function GitStatusWindow:enter_entry_and_close()
             local normalize_path = vim.fs.normalize(path)
 
             if current_path ~= normalize_path then
-                vim.api.nvim_set_current_win(self.win)
-                vim.cmd('edit ' .. vim.fn.fnameescape(path))
+                local buf = vim.fn.bufadd(path)
+                vim.fn.bufload(buf)
+                vim.api.nvim_win_set_buf(self.win, buf)
             end
         end
 
@@ -568,7 +569,6 @@ function GitStatusWindow:close()
             end
 
             window.restore_winopts(self.win, self.win_prev_winopts)
-            pcall(vim.api.nvim_win_set_width, self.win, 0)
             vim.api.nvim_set_current_win(self.win)
         else
             window.restore_winopts(self.win, self.win_prev_winopts)
