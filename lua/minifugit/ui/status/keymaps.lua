@@ -16,10 +16,10 @@ function M.attach(self)
     })
 
     vim.keymap.set('n', 'o', function()
-        self:enter_entry()
+        self:enter_entry_and_close()
     end, {
         buffer = self.buf.id,
-        desc = 'Open git status entry',
+        desc = 'Open entry and close status',
         silent = true,
     })
 

@@ -7,7 +7,8 @@ local sections = {
     {
         title = 'Status window mappings',
         rows = {
-            { '<CR> / o', 'Open entry' },
+            { '<CR>', 'Open entry' },
+            { 'o', 'Open entry and close status' },
             { '=', 'Preview diff' },
             { 'q', 'Close status window' },
             { '/', 'Filter entries' },

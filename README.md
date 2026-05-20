@@ -100,7 +100,8 @@ Default status-window mappings:
 
 | Mode | Key | Action |
 | --- | --- | --- |
-| n | `<CR>` / `o` | Open entry |
+| n | `<CR>` | Open entry |
+| n | `o` | Open entry and close status |
 | n | `=` | Preview diff |
 | n | `q` | Close status window |
 | n | `/` | Filter entries |

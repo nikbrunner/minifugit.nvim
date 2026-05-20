@@ -465,6 +465,16 @@ function GitStatusWindow:enter_entry()
     return window.open_entry(self, entry)
 end
 
+function GitStatusWindow:enter_entry_and_close()
+    local ok = self:enter_entry()
+
+    if ok then
+        self:close()
+    end
+
+    return ok
+end
+
 function GitStatusWindow:toggle_help()
     help.toggle(self)
 end
