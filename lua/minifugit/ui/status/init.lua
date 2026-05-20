@@ -348,6 +348,36 @@ end
 
 ---@return boolean
 function GitStatusWindow:diff_entry()
+    if preview.has_open_diff(self) then
+        local commit_item = selection.current_commit_item(self)
+
+        if commit_item ~= nil then
+            local key = 'commit:' .. commit_item.commit.hash
+
+            if self.diff_preview_key == key then
+                preview.close_diff(self)
+
+                return true
+            end
+        else
+            local item = selection.current_entry_item(self)
+
+            if item ~= nil then
+                local key = table.concat({
+                    item.section or '',
+                    item.entry.orig_path or '',
+                    item.entry.path,
+                }, '\0')
+
+                if self.diff_preview_key == key then
+                    preview.close_diff(self)
+
+                    return true
+                end
+            end
+        end
+    end
+
     local commit_item = selection.current_commit_item(self)
 
     if commit_item ~= nil then
