@@ -50,51 +50,40 @@ vim.pack.add({
 
 ### Options
 
+All options, their defaults, and inline documentation live in
+**[`lua/flux/config/defaults.lua`](lua/flux/config/defaults.lua)**.
+
 ```lua
--- Returns Flux object
 require('flux').setup({
-    preview = {
-        -- Start diff previews with wrapping disabled.
-        wrap = false,
-
-        -- Show old/new line numbers in diff previews.
-        show_line_numbers = true,
-
-        -- Show git diff metadata rows such as `diff --git`, `index`, `---`,
-        -- and `+++`.
-        show_metadata = true,
-
-        -- Diff preview layout: 'stacked', 'split', or 'auto'.
-        diff_layout = 'stacked',
-
-        -- Editor width where 'auto' switches from stacked to split.
-        diff_auto_threshold = 120,
-    },
-    status = {
-        -- Fraction of the editor width used by the status window.
-        width = 0.4,
-
-        -- Minimum status window width in columns.
-        min_width = 20,
-
-        -- Layout: 'topleft' (opens as a vsplit on the far left) or 'replace'
-        -- (replaces the current buffer, like Oil). In replace mode, o opens
-        -- the picked file in place and closes the status view.
-        layout = 'topleft',
-    },
-    -- Override specific keymaps by area. Omitted keys keep defaults.
-    -- Areas: 'status', 'diff_stacked', 'diff_split', 'help'.
+    preview = { wrap = false, show_line_numbers = true, diff_layout = 'stacked' },
+    status = { width = 0.4, min_width = 20, layout = 'topleft' },
     keymaps = {
-        status = {
-            { key = 'q', modes = { 'n' }, desc = 'Close status' },
-        },
+        status = { { key = 'q', modes = { 'n' }, desc = 'Close status' } },
     },
 })
 ```
 
-Diff-preview mappings can toggle `preview.wrap`, `preview.show_line_numbers`,
-`preview.show_metadata`, and the diff layout at runtime for the current status
-session.
+### Highlight Groups
+
+Flux defines its own highlight groups (all prefixed `Flux*`) in the same
+[defaults file](lua/flux/config/defaults.lua). Each one falls back to a
+standard Neovim group when available, then to a hardcoded hex color.
+
+| Group | Role |
+| --- | --- |
+| `FluxStage` | Staged entries |
+| `FluxUnstage` | Unstaged entries |
+| `FluxUntracked` | Untracked entries |
+| `FluxIgnored` | Ignored entries |
+| `FluxConflict` | Conflict entries |
+| `FluxHead` | HEAD label |
+| `FluxDiffAdded` | Added diff lines |
+| `FluxDiffRemoved` | Removed diff lines |
+| `FluxUnpushed` | Unpushed commits |
+| `FluxLoading` | Loading spinner |
+| `FluxDiffLineNr` | Diff line numbers |
+| `FluxDiffHeader` | Diff metadata headers |
+| `FluxDiffHunkHeader` | Hunk headers |
 
 ## Usage
 
