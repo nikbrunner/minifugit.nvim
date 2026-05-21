@@ -279,6 +279,10 @@ local function ensure_autocmds(self)
             end
 
             window.configure_status_win(win)
+
+            -- Refresh buffer-local keymaps on every entry to stay reliable
+            -- through window navigation and bufhidden hide/show cycles.
+            keymaps.attach_buffer_keymaps(self)
         end,
     })
 
@@ -315,6 +319,10 @@ function GitStatusWindow:show()
         log.error('Cannot show invalid GitStatus buffer')
         return
     end
+
+    -- Re-register buffer-local keymaps on every show to ensure they survive
+    -- bufhidden='hide' / show cycles without relying on autocmd persistence.
+    keymaps.attach_buffer_keymaps(self)
 
     if
         self.win

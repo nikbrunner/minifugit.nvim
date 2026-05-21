@@ -3,7 +3,7 @@ local preview = require('minifugit.ui.status.preview')
 local M = {}
 
 ---@param self GitStatusWindow
-function M.attach(self)
+function M.attach_buffer_keymaps(self)
     assert(self.buf ~= nil)
     assert(self.buf:is_valid())
 
@@ -135,7 +135,7 @@ function M.attach(self)
         silent = true,
     })
 
-    vim.keymap.set('n', 'al', function()
+    vim.keymap.set('n', 'l', function()
         preview.toggle_layout(self)
     end, {
         buffer = self.buf.id,
@@ -158,6 +158,12 @@ function M.attach(self)
         desc = 'Unstage selected git status entries',
         silent = true,
     })
+end
+
+---@param self GitStatusWindow
+function M.attach_cursor_autocmd(self)
+    assert(self.buf ~= nil)
+    assert(self.buf:is_valid())
 
     vim.api.nvim_create_autocmd('CursorMoved', {
         buffer = self.buf.id,
@@ -177,6 +183,12 @@ function M.attach(self)
             end
         end,
     })
+end
+
+---@param self GitStatusWindow
+function M.attach(self)
+    M.attach_buffer_keymaps(self)
+    M.attach_cursor_autocmd(self)
 end
 
 return M
