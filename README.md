@@ -82,6 +82,13 @@ require('minifugit').setup({
         -- the picked file in place and closes the status view.
         layout = 'topleft',
     },
+    -- Override specific keymaps by area. Omitted keys keep defaults.
+    -- Areas: 'status', 'diff_stacked', 'diff_split', 'help'.
+    keymaps = {
+        status = {
+            { key = 'q', modes = { 'n' }, desc = 'Close status' },
+        },
+    },
 })
 ```
 

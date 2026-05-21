@@ -23,6 +23,7 @@ local function validate(opts)
     opts = opts or {}
     vim.validate('opts.preview', opts.preview, 'table', true)
     vim.validate('opts.status', opts.status, 'table', true)
+    vim.validate('opts.keymaps', opts.keymaps, 'table', true)
 
     if opts.preview ~= nil then
         vim.validate('opts.preview.wrap', opts.preview.wrap, 'boolean', true)
@@ -106,48 +107,70 @@ local function validate(opts)
         end
     end
 
-    -- Validate keymap overrides
-    local keymap_areas = {
-        'keymaps_status',
-        'keymaps_diff_stacked',
-        'keymaps_diff_split',
-        'keymaps_help',
-    }
+    -- Validate keymap overrides via opts.keymaps.<area>
+    if opts.keymaps ~= nil then
+        if type(opts.keymaps) ~= 'table' then
+            return 'opts.keymaps must be a table'
+        end
 
-    for _, area_key in ipairs(keymap_areas) do
-        local raw = opts[area_key]
-        if raw ~= nil then
-            if type(raw) ~= 'table' then
-                return 'opts.' .. area_key .. ' must be a table'
+        local valid_areas = {
+            'status',
+            'diff_stacked',
+            'diff_split',
+            'help',
+        }
+
+        for area, _ in pairs(opts.keymaps) do
+            local found = false
+            for _, v in ipairs(valid_areas) do
+                if area == v then
+                    found = true
+                    break
+                end
             end
 
-            local keys_seen = {}
+            if not found then
+                return 'opts.keymaps.'
+                    .. area
+                    .. ' is not a valid area (use: status, diff_stacked, diff_split, help)'
+            end
+        end
 
-            for i, entry in ipairs(raw) do
-                if type(entry) ~= 'table' then
-                    return 'opts.'
-                        .. area_key
-                        .. '['
-                        .. i
-                        .. '] must be a table'
+        for _, area_key in ipairs(valid_areas) do
+            local raw = opts.keymaps[area_key]
+            if raw ~= nil then
+                if type(raw) ~= 'table' then
+                    return 'opts.keymaps.' .. area_key .. ' must be a table'
                 end
 
-                if entry.key == nil or type(entry.key) ~= 'string' then
-                    return 'opts.'
-                        .. area_key
-                        .. '['
-                        .. i
-                        .. '].key must be a string'
-                end
+                local keys_seen = {}
 
-                if keys_seen[entry.key] then
-                    return 'opts.'
-                        .. area_key
-                        .. ' contains duplicate key: '
-                        .. entry.key
-                end
+                for i, entry in ipairs(raw) do
+                    if type(entry) ~= 'table' then
+                        return 'opts.keymaps.'
+                            .. area_key
+                            .. '['
+                            .. i
+                            .. '] must be a table'
+                    end
 
-                keys_seen[entry.key] = true
+                    if entry.key == nil or type(entry.key) ~= 'string' then
+                        return 'opts.keymaps.'
+                            .. area_key
+                            .. '['
+                            .. i
+                            .. '].key must be a string'
+                    end
+
+                    if keys_seen[entry.key] then
+                        return 'opts.keymaps.'
+                            .. area_key
+                            .. ' contains duplicate key: '
+                            .. entry.key
+                    end
+
+                    keys_seen[entry.key] = true
+                end
             end
         end
     end
@@ -208,22 +231,24 @@ function M.resolve(user_opts)
         return merged_list
     end
 
+    local keymap_overrides = user_opts.keymaps or {}
+
     return {
         options = merged,
         keymaps_status = resolve_keymaps(
-            user_opts.keymaps_status,
+            keymap_overrides.status,
             defaults.keymaps_status
         ),
         keymaps_diff_stacked = resolve_keymaps(
-            user_opts.keymaps_diff_stacked,
+            keymap_overrides.diff_stacked,
             defaults.keymaps_diff_stacked
         ),
         keymaps_diff_split = resolve_keymaps(
-            user_opts.keymaps_diff_split,
+            keymap_overrides.diff_split,
             defaults.keymaps_diff_split
         ),
         keymaps_help = resolve_keymaps(
-            user_opts.keymaps_help,
+            keymap_overrides.help,
             defaults.keymaps_help
         ),
         highlight_specs = defaults.highlight_specs,

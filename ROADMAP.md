@@ -10,7 +10,7 @@
 ### Planned
 
 - [ ] feat: add keybinding to quick add to gitignore
-- [ ] feat: customizable keybindings
+- [x] feat: customizable keybindings (data-driven keymap tables + keymaps option in setup)
 - [ ] feat: auto-refresh status pane on git events (autocmd)
 - [ ] fix: suppress or debounce "Diff preview not available for untracked directories" notification
 - [ ] chore: rename plugin (with credit to original)

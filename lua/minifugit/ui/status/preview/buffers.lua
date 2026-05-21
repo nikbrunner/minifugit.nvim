@@ -51,6 +51,8 @@ function M.ensure_stacked(self, actions)
     return self.diff_buf
 end
 
+--- NOTE: self is now used (was _) to access self.config.keymaps_diff_split.
+--- All internal callers pass self; this module is not part of the public API.
 ---@param self GitStatusWindow
 ---@param buf_name string
 ---@param existing Buffer?
