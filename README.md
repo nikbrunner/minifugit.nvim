@@ -1,16 +1,16 @@
-# minifugit.nvim
+# flux.nvim
 
 https://github.com/user-attachments/assets/54852a86-f04e-4eea-a432-700de08bb89f
 
 A lightweight Git status UI for Neovim, inspired by
 [vim-fugitive](https://github.com/tpope/vim-fugitive).
 
-minifugit.nvim focuses on a compact status window for everyday Git operations
+flux.nvim focuses on a compact status window for everyday Git operations
 without leaving Neovim.
 
 ## Features
 
-- Open a Git status window with `:MinifugitStatus`.
+- Open a Git status window with `:Flux`.
 - View your files' status.
 - Discard unstaged changes or delete untracked paths, with confirmation by
   default.
@@ -20,7 +20,7 @@ without leaving Neovim.
 - Create commits.
 - Animated loading spinner while pushing your commits.
 - View unpushed commits in the status window and preview the diffs.
-- Run `:checkhealth minifugit` to verify Neovim and Git requirements.
+- Run `:checkhealth flux` to verify Neovim and Git requirements.
 
 ## Requirements
 
@@ -33,7 +33,7 @@ without leaving Neovim.
 
 ```lua
 vim.pack.add({
-    'https://github.com/vieitesss/minifugit.nvim',
+    'https://github.com/nikbrunner/flux.nvim',
     version = vim.version.range("*") -- stable version
     -- version = "nightly"
 })
@@ -43,16 +43,16 @@ vim.pack.add({
 
 ```lua
 {
-    'vieitesss/minifugit.nvim',
-    cmd = { 'MinifugitStatus' },
+    'nikbrunner/flux.nvim',
+    cmd = { 'Flux' },
 }
 ```
 
 ### Options
 
 ```lua
--- Returns Minifugit object
-require('minifugit').setup({
+-- Returns Flux object
+require('flux').setup({
     preview = {
         -- Start diff previews with wrapping disabled.
         wrap = false,
@@ -101,11 +101,11 @@ session.
 Open the status window:
 
 ```vim
-:MinifugitStatus
+:Flux
 ```
 
 ```lua
-require('minifugit').status()
+require('flux').status()
 ```
 
 Default status-window mappings:
@@ -143,3 +143,10 @@ Default diff-preview mappings:
 | n | `an` | Alternate line numbers |
 | n | `am` | Alternate metadata rows *(stacked only)* |
 | n | `al` | Alternate stacked/split layout |
+
+## Credits
+
+flux.nvim is a fork of [minifugit.nvim](https://github.com/vieitesss/minifugit.nvim)
+by [vieitesss](https://github.com/vieitesss). The original plugin provided the
+foundation for this lightweight Git status UI — flux.nvim builds on it with a
+fresh name and continued development.

@@ -1,10 +1,10 @@
 ---@diagnostic disable: undefined-field
 ---@type table
-local git = require('minifugit.git')
+local git = require('flux.git')
 local spec_dir = vim.fs.dirname(
     vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p')
 )
----@type MinifugitTestHelpers
+---@type FluxTestHelpers
 local helpers = dofile(vim.fs.joinpath(vim.fs.dirname(spec_dir), 'helpers.lua'))
 
 ---@param entries GitStatusEntry[]
@@ -18,7 +18,7 @@ local function entry_by_path(entries, path)
     end
 end
 
-describe('minifugit.git', function()
+describe('flux.git', function()
     ---@type string
     local original_cwd
     ---@type string
@@ -30,9 +30,9 @@ describe('minifugit.git', function()
         vim.fn.mkdir(repo, 'p')
 
         helpers.run({ 'git', 'init', '-b', 'main' }, repo)
-        helpers.run({ 'git', 'config', 'user.name', 'Minifugit Test' }, repo)
+        helpers.run({ 'git', 'config', 'user.name', 'Flux Test' }, repo)
         helpers.run(
-            { 'git', 'config', 'user.email', 'minifugit@example.test' },
+            { 'git', 'config', 'user.email', 'flux@example.test' },
             repo
         )
 

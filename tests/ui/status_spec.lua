@@ -2,7 +2,7 @@
 local spec_dir = vim.fs.dirname(
     vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p')
 )
----@type MinifugitTestHelpers
+---@type FluxTestHelpers
 local helpers = dofile(vim.fs.joinpath(vim.fs.dirname(spec_dir), 'helpers.lua'))
 
 ---@param buf integer
@@ -112,24 +112,24 @@ local function wait_for_current_buf(buf, expected_opts)
     end))
 end
 
-describe('minifugit status UI', function()
+describe('flux status UI', function()
     ---@type string
     local original_cwd
     ---@type string
     local repo
-    ---@type Minifugit
-    local minifugit
+    ---@type Flux
+    local flux
 
     before_each(function()
-        package.loaded.minifugit = nil
+        package.loaded.flux = nil
         original_cwd = vim.fn.getcwd()
         repo = vim.fn.tempname()
         vim.fn.mkdir(repo, 'p')
 
         helpers.run({ 'git', 'init', '-b', 'main' }, repo)
-        helpers.run({ 'git', 'config', 'user.name', 'Minifugit Test' }, repo)
+        helpers.run({ 'git', 'config', 'user.name', 'Flux Test' }, repo)
         helpers.run(
-            { 'git', 'config', 'user.email', 'minifugit@example.test' },
+            { 'git', 'config', 'user.email', 'flux@example.test' },
             repo
         )
 
@@ -139,14 +139,14 @@ describe('minifugit status UI', function()
 
         vim.cmd.cd(vim.fn.fnameescape(repo))
         vim.cmd.enew()
-        minifugit = require('minifugit').setup({
+        flux = require('flux').setup({
             status = { width = 0.5, min_width = 20 },
         })
     end)
 
     after_each(function()
-        if minifugit ~= nil then
-            minifugit.reset()
+        if flux ~= nil then
+            flux.reset()
         end
 
         vim.cmd.only({ mods = { emsg_silent = true } })
@@ -175,10 +175,10 @@ describe('minifugit status UI', function()
             )
             helpers.run({ 'git', 'add', 'staged.txt' }, repo)
 
-            minifugit.status()
+            flux.status()
 
             ---@type GitStatusWindow
-            local gsw = minifugit.gsw
+            local gsw = flux.gsw
             assert.is_not_nil(gsw)
             assert.is_true(vim.api.nvim_win_is_valid(gsw.win))
             assert.is_true(vim.api.nvim_buf_is_valid(gsw.buf.id))
@@ -186,7 +186,7 @@ describe('minifugit status UI', function()
             assert.are.equal('nofile', vim.bo[gsw.buf.id].buftype)
             assert.are.equal('hide', vim.bo[gsw.buf.id].bufhidden)
             assert.are.equal(false, vim.bo[gsw.buf.id].modifiable)
-            assert.are.equal('minifugit', vim.bo[gsw.buf.id].filetype)
+            assert.are.equal('flux', vim.bo[gsw.buf.id].filetype)
             assert.are.equal(false, vim.wo[gsw.win].number)
             assert.are.equal(false, vim.wo[gsw.win].relativenumber)
             assert.are.equal('no', vim.wo[gsw.win].signcolumn)
@@ -207,10 +207,10 @@ describe('minifugit status UI', function()
     it(
         'refreshes and reuses the existing status buffer on repeated calls',
         function()
-            minifugit.status()
+            flux.status()
 
             ---@type GitStatusWindow
-            local first = minifugit.gsw
+            local first = flux.gsw
             local first_buf = first.buf.id
             local first_win = assert(first.win)
 
@@ -218,21 +218,21 @@ describe('minifugit status UI', function()
                 vim.fs.joinpath(repo, 'untracked.txt'),
                 { 'untracked' }
             )
-            minifugit.status()
+            flux.status()
 
-            assert.are.equal(first, minifugit.gsw)
-            assert.are.equal(first_buf, minifugit.gsw.buf.id)
-            assert.are.equal(first_win, minifugit.gsw.win)
+            assert.are.equal(first, flux.gsw)
+            assert.are.equal(first_buf, flux.gsw.buf.id)
+            assert.are.equal(first_win, flux.gsw.win)
             assert.are.equal(first_buf, vim.api.nvim_win_get_buf(first_win))
             assert_has_line(buffer_lines(first_buf), '?? untracked.txt')
         end
     )
 
     it('closes the status window through its normal mode mapping', function()
-        minifugit.status()
+        flux.status()
 
         ---@type GitStatusWindow
-        local gsw = minifugit.gsw
+        local gsw = flux.gsw
         local win = assert(gsw.win)
         local buf = gsw.buf.id
 
@@ -249,9 +249,9 @@ describe('minifugit status UI', function()
         vim.fn.mkdir(not_repo, 'p')
         vim.cmd.cd(vim.fn.fnameescape(not_repo))
 
-        minifugit.status()
+        flux.status()
 
-        local lines = buffer_lines(minifugit.gsw.buf.id)
+        local lines = buffer_lines(flux.gsw.buf.id)
         assert_has_line(lines, 'HEAD: (none)')
         assert_has_line_containing(lines, 'Not inside a git repository')
 
@@ -273,14 +273,14 @@ describe('minifugit status UI', function()
             vim.api.nvim_buf_set_lines(file_buf, 0, -1, false, { 'unsaved' })
             assert.is_true(vim.bo[file_buf].modified)
 
-            minifugit.status()
-            vim.api.nvim_set_current_win(minifugit.gsw.win)
+            flux.status()
+            vim.api.nvim_set_current_win(flux.gsw.win)
             vim.api.nvim_win_set_cursor(
-                minifugit.gsw.win,
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                flux.gsw.win,
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
 
-            assert.is_true(minifugit.gsw:enter_entry())
+            assert.is_true(flux.gsw:enter_entry())
 
             assert.are.equal(file_win, vim.api.nvim_get_current_win())
             assert.are.equal(file_buf, vim.api.nvim_get_current_buf())
@@ -307,8 +307,8 @@ describe('minifugit status UI', function()
             vim.wo[file_win].statuscolumn = 'user-statuscolumn'
             local before = capture_winopts(file_win)
 
-            minifugit.status()
-            vim.api.nvim_set_current_win(minifugit.gsw.win)
+            flux.status()
+            vim.api.nvim_set_current_win(flux.gsw.win)
             vim.cmd.normal('q')
 
             assert.is_true(vim.api.nvim_win_is_valid(file_win))
@@ -340,23 +340,23 @@ describe('minifugit status UI', function()
             vim.wo[file_win].statuscolumn = 'user-statuscolumn'
             local before = capture_winopts(file_win)
 
-            minifugit.config.options.preview.diff_layout = 'stacked'
-            minifugit.status()
+            flux.config.options.preview.diff_layout = 'stacked'
+            flux.status()
             vim.api.nvim_win_set_cursor(
-                assert(minifugit.gsw.win),
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                assert(flux.gsw.win),
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
-            minifugit.gsw:diff_entry()
+            flux.gsw:diff_entry()
 
             assert.are.equal(
-                minifugit.gsw.diff_buf.id,
+                flux.gsw.diff_buf.id,
                 vim.api.nvim_win_get_buf(file_win)
             )
             assert.are.equal(false, vim.wo[file_win].number)
             assert.are.equal(false, vim.wo[file_win].relativenumber)
             assert.are.equal('no', vim.wo[file_win].signcolumn)
 
-            minifugit.gsw:close()
+            flux.gsw:close()
 
             assert.is_true(vim.api.nvim_win_is_valid(file_win))
             assert.are.equal(file_buf, vim.api.nvim_win_get_buf(file_win))
@@ -372,20 +372,20 @@ describe('minifugit status UI', function()
                 { 'one', 'two' }
             )
 
-            minifugit.config.options.preview.diff_layout = 'stacked'
-            minifugit.status()
-            vim.api.nvim_set_current_win(minifugit.gsw.win)
+            flux.config.options.preview.diff_layout = 'stacked'
+            flux.status()
+            vim.api.nvim_set_current_win(flux.gsw.win)
             vim.api.nvim_win_set_cursor(
-                minifugit.gsw.win,
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                flux.gsw.win,
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
 
-            assert.is_true(minifugit.gsw:diff_entry())
-            vim.api.nvim_set_current_win(minifugit.gsw.win)
-            assert.is_true(minifugit.gsw:diff_entry())
+            assert.is_true(flux.gsw:diff_entry())
+            vim.api.nvim_set_current_win(flux.gsw.win)
+            assert.is_true(flux.gsw:diff_entry())
 
             assert.are.equal(
-                minifugit.gsw.diff_win,
+                flux.gsw.diff_win,
                 vim.api.nvim_get_current_win()
             )
         end
@@ -410,23 +410,23 @@ describe('minifugit status UI', function()
         vim.wo[file_win].statuscolumn = 'split-statuscolumn'
         local before = capture_winopts(file_win)
 
-        minifugit.config.options.preview.diff_layout = 'split'
-        minifugit.status()
+        flux.config.options.preview.diff_layout = 'split'
+        flux.status()
         vim.api.nvim_win_set_cursor(
-            minifugit.gsw.win,
-            { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+            flux.gsw.win,
+            { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
         )
-        minifugit.gsw:diff_entry()
+        flux.gsw:diff_entry()
 
         assert.are.equal(
-            minifugit.gsw.diff_left_buf.id,
+            flux.gsw.diff_left_buf.id,
             vim.api.nvim_win_get_buf(file_win)
         )
         assert.are.equal(true, vim.wo[file_win].diff)
         assert.are.equal(false, vim.wo[file_win].relativenumber)
         assert.are.equal('yes:1', vim.wo[file_win].signcolumn)
 
-        minifugit.gsw:close()
+        flux.gsw:close()
 
         assert.is_true(vim.api.nvim_win_is_valid(file_win))
         assert.are.equal(file_buf, vim.api.nvim_win_get_buf(file_win))
@@ -446,9 +446,9 @@ describe('minifugit status UI', function()
         vim.wo.statuscolumn = 'jump-statuscolumn'
         local file_opts = capture_winopts(vim.api.nvim_get_current_win())
 
-        minifugit.status()
-        local status_win = assert(minifugit.gsw.win)
-        local status_buf = minifugit.gsw.buf.id
+        flux.status()
+        local status_win = assert(flux.gsw.win)
+        local status_buf = flux.gsw.buf.id
         local status_opts = capture_winopts(status_win)
 
         vim.api.nvim_set_current_win(status_win)
@@ -490,16 +490,16 @@ describe('minifugit status UI', function()
             vim.wo.statuscolumn = 'diff-jump-statuscolumn'
             local file_opts = capture_winopts(vim.api.nvim_get_current_win())
 
-            minifugit.config.options.preview.diff_layout = 'stacked'
-            minifugit.status()
+            flux.config.options.preview.diff_layout = 'stacked'
+            flux.status()
             vim.api.nvim_win_set_cursor(
-                assert(minifugit.gsw.win),
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                assert(flux.gsw.win),
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
-            minifugit.gsw:diff_entry()
+            flux.gsw:diff_entry()
 
-            local diff_win = assert(minifugit.gsw.diff_win)
-            local diff_buf = minifugit.gsw.diff_buf.id
+            local diff_win = assert(flux.gsw.diff_win)
+            local diff_buf = flux.gsw.diff_buf.id
             local diff_opts = capture_winopts(diff_win)
             vim.api.nvim_set_current_win(diff_win)
             normal_keys('<C-O>')
@@ -541,13 +541,13 @@ describe('minifugit status UI', function()
             vim.wo[file_win].wrap = true
             local file_opts = capture_winopts(file_win)
 
-            minifugit.config.options.preview.diff_layout = 'stacked'
-            minifugit.status()
+            flux.config.options.preview.diff_layout = 'stacked'
+            flux.status()
             vim.api.nvim_win_set_cursor(
-                assert(minifugit.gsw.win),
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                assert(flux.gsw.win),
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
-            minifugit.gsw:diff_entry()
+            flux.gsw:diff_entry()
 
             vim.api.nvim_set_current_win(file_win)
             vim.cmd.edit(vim.fn.fnameescape(vim.fs.joinpath(repo, 'other.txt')))
@@ -577,13 +577,13 @@ describe('minifugit status UI', function()
             vim.wo[file_win].wrap = true
             local file_opts = capture_winopts(file_win)
 
-            minifugit.config.options.preview.diff_layout = 'split'
-            minifugit.status()
+            flux.config.options.preview.diff_layout = 'split'
+            flux.status()
             vim.api.nvim_win_set_cursor(
-                assert(minifugit.gsw.win),
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                assert(flux.gsw.win),
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
-            minifugit.gsw:diff_entry()
+            flux.gsw:diff_entry()
 
             vim.api.nvim_set_current_win(file_win)
             vim.cmd.edit(vim.fn.fnameescape(vim.fs.joinpath(repo, 'other.txt')))
@@ -615,16 +615,16 @@ describe('minifugit status UI', function()
             vim.wo.statuscolumn = 'split-jump-statuscolumn'
             local file_opts = capture_winopts(vim.api.nvim_get_current_win())
 
-            minifugit.config.options.preview.diff_layout = 'split'
-            minifugit.status()
+            flux.config.options.preview.diff_layout = 'split'
+            flux.status()
             vim.api.nvim_win_set_cursor(
-                assert(minifugit.gsw.win),
-                { row_containing(minifugit.gsw.buf.id, 'tracked.txt'), 0 }
+                assert(flux.gsw.win),
+                { row_containing(flux.gsw.buf.id, 'tracked.txt'), 0 }
             )
-            minifugit.gsw:diff_entry()
+            flux.gsw:diff_entry()
 
-            local diff_win = assert(minifugit.gsw.diff_left_win)
-            local diff_buf = minifugit.gsw.diff_left_buf.id
+            local diff_win = assert(flux.gsw.diff_left_win)
+            local diff_buf = flux.gsw.diff_left_buf.id
             local diff_opts = capture_winopts(diff_win)
             vim.api.nvim_set_current_win(diff_win)
             normal_keys('<C-O>')

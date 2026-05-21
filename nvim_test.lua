@@ -8,10 +8,10 @@ vim.opt.number = true
 vim.cmd('colorscheme catppuccin')
 
 vim.pack.add({
-    { src = vim.env.HOME .. '/personal/minifugit.nvim' },
+    { src = vim.env.HOME .. '/personal/flux.nvim' },
 })
 
-local mf = require('minifugit').setup({
+local mf = require('flux').setup({
     preview = {
         wrap = false,
         show_line_numbers = true,
@@ -22,7 +22,7 @@ local mf = require('minifugit').setup({
         min_width = 20,
     },
 })
-local log = require('minifugit.log')
+local log = require('flux.log')
 
 vim.keymap.set('n', '<leader>gs', function()
     mf.status()
