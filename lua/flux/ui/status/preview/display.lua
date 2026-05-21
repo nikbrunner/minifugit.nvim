@@ -43,12 +43,12 @@ function M.toggle_split_numbers(self)
     return true
 end
 
----@class MiniFugitStatusWinState
+---@class FluxStatusWinState
 ---@field winfixwidth boolean
 ---@field width integer
 
 ---@param self GitStatusWindow
----@return MiniFugitStatusWinState?
+---@return FluxStatusWinState?
 local function make_status_win_resizable(self)
     if not common.is_valid_win(self.win) then
         return nil
@@ -64,7 +64,7 @@ local function make_status_win_resizable(self)
 end
 
 ---@param self GitStatusWindow
----@param state MiniFugitStatusWinState?
+---@param state FluxStatusWinState?
 local function restore_status_win_state(self, state)
     if state == nil or not common.is_valid_win(self.win) then
         return
@@ -76,7 +76,7 @@ end
 
 ---@param self GitStatusWindow
 ---@param command string
----@param status_win_state MiniFugitStatusWinState?
+---@param status_win_state FluxStatusWinState?
 ---@return number?
 local function create_preview_split(self, command, status_win_state)
     local current_win = vim.api.nvim_get_current_win()
@@ -102,7 +102,7 @@ end
 ---@param win number
 ---@param buf integer
 ---@param created boolean
----@param status_win_state MiniFugitStatusWinState?
+---@param status_win_state FluxStatusWinState?
 ---@return boolean
 local function set_preview_win_buf(self, win, buf, created, status_win_state)
     vim.wo[win].winfixwidth = false
@@ -223,10 +223,10 @@ function M.focus_open_diff(self)
 end
 
 ---@param self GitStatusWindow
----@param diff_lines MiniFugitRenderLine[]
+---@param diff_lines FluxRenderLine[]
 ---@param preview_key string
 ---@param title string
----@param actions MiniFugitPreviewBufferActions
+---@param actions FluxPreviewBufferActions
 ---@return boolean
 function M.show_stacked(self, diff_lines, preview_key, title, actions)
     local transition_win
@@ -352,7 +352,7 @@ end
 ---@param diff_lines string[]
 ---@param preview_key string
 ---@param title string
----@param actions MiniFugitPreviewBufferActions
+---@param actions FluxPreviewBufferActions
 ---@return boolean
 function M.show_split(self, split_diff, diff_lines, preview_key, title, actions)
     local transition_win

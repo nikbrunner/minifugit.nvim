@@ -9,7 +9,7 @@ local preview_cursor = require('flux.ui.status.preview.cursor')
 local M = {}
 
 ---@param self GitStatusWindow
----@param hunk MiniFugitDiffHunk
+---@param hunk FluxDiffHunk
 ---@return string[]?
 function M.hunk_patch(self, hunk)
     local lines = self.diff_raw_lines
@@ -51,7 +51,7 @@ function M.hunk_patch(self, hunk)
 end
 
 ---@param self GitStatusWindow
----@param callbacks MiniFugitPreviewActions
+---@param callbacks FluxPreviewActions
 ---@return string[]?
 function M.current_hunk_patch(self, callbacks)
     if not callbacks.has_open_diff() or self.diff_raw_lines == nil then
@@ -79,7 +79,7 @@ end
 
 ---@param self GitStatusWindow
 ---@param kind 'stage'|'unstage'|'discard'
----@param callbacks MiniFugitPreviewActions
+---@param callbacks FluxPreviewActions
 ---@return boolean
 function M.apply_current_hunk(self, kind, callbacks)
     local section = self.diff_section

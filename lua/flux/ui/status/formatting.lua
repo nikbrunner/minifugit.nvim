@@ -30,7 +30,7 @@ local conflict_statuses = {
 
 ---@param commit GitCommit
 ---@param groups table<string, string>
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 function M.commit_line(commit, groups)
     local text = commit.short_hash .. ' ' .. commit.message
     local line = render.line(text, {
@@ -91,7 +91,7 @@ end
 
 ---@param branch string
 ---@param groups table<string, string>
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 function M.head_line(branch, groups)
     local prefix = 'HEAD: '
     local text = prefix .. (branch ~= '' and branch or '(none)')
@@ -105,7 +105,7 @@ end
 
 ---@param title string
 ---@param count integer
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 local function section_line(title, count)
     local text = string.format('%s (%d)', title, count)
     local line = render.line(text)
@@ -117,7 +117,7 @@ end
 
 ---@param text string
 ---@param group string
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 local function message_line(text, group)
     local line = render.line(text)
 
@@ -129,7 +129,7 @@ end
 ---@param message string
 ---@param frame string
 ---@param groups table<string, string>
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 local function loading_line(message, frame, groups)
     local text = frame .. ' ' .. message
     local line = render.line(text)
@@ -142,7 +142,7 @@ end
 ---@param entry GitStatusEntry
 ---@param groups table<string, string>
 ---@param section GitStatusSectionName
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 function M.entry_line(entry, groups, section)
     local line = render.line(entry_text(entry), {
         entry = entry,
@@ -166,7 +166,7 @@ end
 ---@param entries GitStatusEntry[]
 ---@param groups table<string, string>
 ---@param section GitStatusSectionName
----@return MiniFugitRenderLine[]
+---@return FluxRenderLine[]
 function M.entry_lines(entries, groups, section)
     local lines = {}
 
@@ -268,7 +268,7 @@ local function sections(entries)
     }
 end
 
----@param lines MiniFugitRenderLine[]
+---@param lines FluxRenderLine[]
 ---@param section GitStatusSection
 ---@param groups table<string, string>
 local function append_section(lines, section, groups)
@@ -284,7 +284,7 @@ end
 ---@param snapshot GitStatusSnapshot
 ---@param groups table<string, string>
 ---@param opts? GitStatusRenderOpts
----@return MiniFugitRenderLine[]
+---@return FluxRenderLine[]
 function M.render(snapshot, groups, opts)
     opts = opts or {}
 

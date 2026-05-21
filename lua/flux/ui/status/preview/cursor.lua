@@ -3,13 +3,13 @@ local diff_position = require('flux.ui.diff.position')
 
 local M = {}
 
----@class MiniFugitDiffCursor
+---@class FluxDiffCursor
 ---@field layout 'stacked'|'split'
 ---@field row integer
----@field side MiniFugitDiffSide?
+---@field side FluxDiffSide?
 
 ---@param self GitStatusWindow
----@return MiniFugitDiffCursor?
+---@return FluxDiffCursor?
 function M.current_diff_cursor(self)
     local current_win = vim.api.nvim_get_current_win()
     local current_buf = vim.api.nvim_win_get_buf(current_win)
@@ -31,7 +31,7 @@ function M.current_diff_cursor(self)
 end
 
 ---@param self GitStatusWindow
----@return MiniFugitDiffSourcePosition?
+---@return FluxDiffSourcePosition?
 function M.current_source_position(self)
     local entry = self.diff_context_entry
 
@@ -71,7 +71,7 @@ function M.current_source_position(self)
 end
 
 ---@param self GitStatusWindow
----@return MiniFugitDiffHunkPosition?
+---@return FluxDiffHunkPosition?
 function M.current_hunk_position(self)
     local cursor = M.current_diff_cursor(self)
 
@@ -115,7 +115,7 @@ function M.set_cursor_row(win, row)
 end
 
 ---@param self GitStatusWindow
----@param position MiniFugitDiffHunkPosition?
+---@param position FluxDiffHunkPosition?
 function M.restore_hunk_position(self, position)
     if position == nil then
         return

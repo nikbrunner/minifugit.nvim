@@ -14,7 +14,7 @@
 ---@field preview FluxPreviewOptions
 ---@field status FluxStatusOptions
 
----@class MiniFugitKeymapEntry
+---@class FluxKeymapEntry
 ---@field key string
 ---@field modes string[]
 ---@field desc string
@@ -47,7 +47,7 @@ M.options = {
 -- Keymaps
 -- ---------------------------------------------------------------------------
 
----@type MiniFugitKeymapEntry[]
+---@type FluxKeymapEntry[]
 M.keymaps_status = {
     {
         key = '<CR>',
@@ -185,7 +185,7 @@ M.keymaps_status = {
     },
 }
 
----@type MiniFugitKeymapEntry[]
+---@type FluxKeymapEntry[]
 M.keymaps_diff_stacked = {
     {
         key = 'q',
@@ -266,7 +266,7 @@ M.keymaps_diff_stacked = {
     },
 }
 
----@type MiniFugitKeymapEntry[]
+---@type FluxKeymapEntry[]
 M.keymaps_diff_split = {
     {
         key = 'q',
@@ -340,7 +340,7 @@ M.keymaps_diff_split = {
     },
 }
 
----@type MiniFugitKeymapEntry[]
+---@type FluxKeymapEntry[]
 M.keymaps_help = {
     {
         key = 'q',
@@ -369,7 +369,7 @@ M.keymaps_help = {
 -- Highlight specs
 -- ---------------------------------------------------------------------------
 
----@class MiniFugitHighlightSpec
+---@class FluxHighlightSpec
 ---@field name string
 ---@field sources string[]
 ---@field fallback_fg integer?
@@ -377,57 +377,57 @@ M.keymaps_help = {
 
 M.highlight_specs = {
     staged = {
-        name = 'MiniFugitStage',
+        name = 'FluxStage',
         sources = { 'Added', 'String' },
         fallback_fg = 0x98C379,
     },
     unstaged = {
-        name = 'MiniFugitUnstage',
+        name = 'FluxUnstage',
         sources = { 'Removed', 'Error' },
         fallback_fg = 0xE06C75,
     },
     untracked = {
-        name = 'MiniFugitUntracked',
+        name = 'FluxUntracked',
         sources = { 'DiagnosticInfo', 'Directory', 'Identifier' },
         fallback_fg = 0x61AFEF,
     },
     ignored = {
-        name = 'MiniFugitIgnored',
+        name = 'FluxIgnored',
         sources = { 'Comment' },
         fallback_fg = 0x5C6370,
     },
     conflict = {
-        name = 'MiniFugitConflict',
+        name = 'FluxConflict',
         sources = { 'DiagnosticError', 'ErrorMsg', 'Error' },
         fallback_fg = 0xE06C75,
     },
     head = {
-        name = 'MiniFugitHead',
+        name = 'FluxHead',
         sources = { 'Identifier', 'Keyword' },
         fallback_fg = 0x61AFEF,
     },
     diff_added = {
-        name = 'MiniFugitDiffAdded',
+        name = 'FluxDiffAdded',
         sources = { 'DiffAdd', 'Added', 'String' },
         fallback_bg = 0x2E4D33,
     },
     diff_removed = {
-        name = 'MiniFugitDiffRemoved',
+        name = 'FluxDiffRemoved',
         sources = { 'DiffDelete', 'Removed', 'Error' },
         fallback_bg = 0x5A2D34,
     },
     unpushed = {
-        name = 'MiniFugitUnpushed',
+        name = 'FluxUnpushed',
         sources = { 'Constant', 'Number' },
         fallback_fg = 0xD19A66,
     },
     loading = {
-        name = 'MiniFugitLoading',
+        name = 'FluxLoading',
         sources = { 'DiagnosticInfo', 'Identifier' },
         fallback_fg = 0x61AFEF,
     },
     diff_line_nr = {
-        name = 'MiniFugitDiffLineNr',
+        name = 'FluxDiffLineNr',
         sources = { 'LineNr', 'Comment' },
         fallback_fg = 0x5C6370,
     },
@@ -449,8 +449,8 @@ M.owned_buffer_fields = {
 
 M.highlight_namespace = 'GitStatusWindow'
 
-M.diff_header_hl_name = 'MiniFugitDiffHeader'
+M.diff_header_hl_name = 'FluxDiffHeader'
 
-M.diff_hunk_header_hl_name = 'MiniFugitDiffHunkHeader'
+M.diff_hunk_header_hl_name = 'FluxDiffHunkHeader'
 
 return M

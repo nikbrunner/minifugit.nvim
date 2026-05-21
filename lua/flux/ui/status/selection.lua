@@ -78,7 +78,7 @@ function M.commit_item_from_data(data)
 end
 
 ---@param self GitStatusWindow
----@return MiniFugitRenderLine?
+---@return FluxRenderLine?
 function M.current_line(self)
     if not self.buf or not self.buf:is_valid() then
         return nil

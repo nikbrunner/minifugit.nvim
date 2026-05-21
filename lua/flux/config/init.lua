@@ -1,10 +1,10 @@
----@class MiniFugitConfig
+---@class FluxConfig
 ---@field options FluxOptions
----@field keymaps_status MiniFugitKeymapEntry[]
----@field keymaps_diff_stacked MiniFugitKeymapEntry[]
----@field keymaps_diff_split MiniFugitKeymapEntry[]
----@field keymaps_help MiniFugitKeymapEntry[]
----@field highlight_specs table<string, MiniFugitHighlightSpec>
+---@field keymaps_status FluxKeymapEntry[]
+---@field keymaps_diff_stacked FluxKeymapEntry[]
+---@field keymaps_diff_split FluxKeymapEntry[]
+---@field keymaps_help FluxKeymapEntry[]
+---@field highlight_specs table<string, FluxHighlightSpec>
 ---@field spinner_frames string[]
 ---@field owned_buffer_fields string[]
 ---@field highlight_namespace string
@@ -179,7 +179,7 @@ local function validate(opts)
 end
 
 ---@param user_opts FluxOptions?
----@return MiniFugitConfig
+---@return FluxConfig
 function M.resolve(user_opts)
     user_opts = user_opts or {}
 

@@ -2,10 +2,10 @@ local parser = require('flux.ui.diff.parser')
 local source_syntax = require('flux.ui.diff.syntax')
 local render = require('flux.ui.render')
 
----@class MiniFugitDiffRenderOpts
+---@class FluxDiffRenderOpts
 ---@field show_headers boolean?
 ---@field show_numbers boolean?
----@field syntax MiniFugitDiffSyntaxSource?
+---@field syntax FluxDiffSyntaxSource?
 
 local M = {}
 
@@ -20,9 +20,9 @@ local function format_number(number, width)
     return string.format('%' .. width .. 'd', number)
 end
 
----@param line MiniFugitDiffLine
+---@param line FluxDiffLine
 ---@param width integer
----@param opts MiniFugitDiffRenderOpts
+---@param opts FluxDiffRenderOpts
 ---@return string
 local function format_diff_line(line, width, opts)
     if line.kind == 'header' or line.kind == 'hunk' then
@@ -41,7 +41,7 @@ local function format_diff_line(line, width, opts)
     )
 end
 
----@param lines MiniFugitDiffLine[]
+---@param lines FluxDiffLine[]
 ---@return integer
 local function diff_number_width(lines)
     local max_number = 0
@@ -59,8 +59,8 @@ local function diff_number_width(lines)
     return math.max(#tostring(max_number), 1)
 end
 
----@param line MiniFugitRenderLine
----@param spans MiniFugitSyntaxSpan[]?
+---@param line FluxRenderLine
+---@param spans FluxSyntaxSpan[]?
 ---@param start_col integer
 local function add_source_highlights(line, spans, start_col)
     for _, span in ipairs(spans or {}) do
@@ -73,7 +73,7 @@ local function add_source_highlights(line, spans, start_col)
     end
 end
 
----@param diff_line MiniFugitDiffLine
+---@param diff_line FluxDiffLine
 ---@return 'left'|'right'?
 ---@return integer?
 local function syntax_side_and_row(diff_line)
@@ -92,8 +92,8 @@ local function syntax_side_and_row(diff_line)
     return nil, nil
 end
 
----@param line MiniFugitRenderLine
----@param diff_line MiniFugitDiffLine
+---@param line FluxRenderLine
+---@param diff_line FluxDiffLine
 ---@param groups table<string, string>
 local function add_diff_highlights(line, diff_line, groups)
     if diff_line.kind == 'added' then
@@ -107,11 +107,11 @@ local function add_diff_highlights(line, diff_line, groups)
     end
 end
 
----@param line MiniFugitRenderLine
----@param diff_line MiniFugitDiffLine
----@param source_spans table<string, table<integer, MiniFugitSyntaxSpan[]>>?
+---@param line FluxRenderLine
+---@param diff_line FluxDiffLine
+---@param source_spans table<string, table<integer, FluxSyntaxSpan[]>>?
 ---@param width integer
----@param opts MiniFugitDiffRenderOpts
+---@param opts FluxDiffRenderOpts
 local function add_source_syntax(line, diff_line, source_spans, width, opts)
     if source_spans == nil then
         return
@@ -130,8 +130,8 @@ end
 
 ---@param lines string[]
 ---@param groups table<string, string>
----@param opts? MiniFugitDiffRenderOpts
----@return MiniFugitRenderLine[]
+---@param opts? FluxDiffRenderOpts
+---@return FluxRenderLine[]
 ---@return integer[]
 function M.render_lines(lines, groups, opts)
     opts = opts or {}

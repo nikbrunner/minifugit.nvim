@@ -1,7 +1,7 @@
 ---@class Flux
 ---@field gsw GitStatusWindow?
 ---@field did_setup boolean
----@field config MiniFugitConfig
+---@field config FluxConfig
 local M = {
     gsw = nil,
     did_setup = false,

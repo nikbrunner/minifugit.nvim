@@ -1,9 +1,9 @@
----@class MiniFugitSyntaxSpan
+---@class FluxSyntaxSpan
 ---@field group string
 ---@field start_col integer
 ---@field end_col integer
 
----@class MiniFugitDiffSyntaxSource
+---@class FluxDiffSyntaxSource
 ---@field filetype string
 ---@field left_lines string[]
 ---@field right_lines string[]
@@ -14,7 +14,7 @@ local VIM_SYNTAX_MAX_LINES = 2000
 local VIM_SYNTAX_MAX_BYTES = 200000
 
 ---@param lines string[]
----@return table<integer, MiniFugitSyntaxSpan[]>
+---@return table<integer, FluxSyntaxSpan[]>
 local function empty_spans(lines)
     local spans = {}
 
@@ -25,7 +25,7 @@ local function empty_spans(lines)
     return spans
 end
 
----@param spans table<integer, MiniFugitSyntaxSpan[]>
+---@param spans table<integer, FluxSyntaxSpan[]>
 ---@return boolean
 local function has_spans(spans)
     for _, line_spans in pairs(spans) do
@@ -62,7 +62,7 @@ local function treesitter_capture_group(capture, lang)
     return nil
 end
 
----@param spans table<integer, MiniFugitSyntaxSpan[]>
+---@param spans table<integer, FluxSyntaxSpan[]>
 ---@param lines string[]
 ---@param row integer
 ---@param start_col integer
@@ -84,7 +84,7 @@ end
 ---@param filetype string
 ---@param lines string[]
 ---@param rows table<integer, true>?
----@return table<integer, MiniFugitSyntaxSpan[]>?
+---@return table<integer, FluxSyntaxSpan[]>?
 local function treesitter_spans(buf, filetype, lines, rows)
     if
         vim.treesitter == nil
@@ -196,7 +196,7 @@ end
 ---@param filetype string
 ---@param lines string[]
 ---@param rows table<integer, true>?
----@return table<integer, MiniFugitSyntaxSpan[]>
+---@return table<integer, FluxSyntaxSpan[]>
 local function vim_spans(buf, filetype, lines, rows)
     local spans = empty_spans(lines)
 
@@ -256,7 +256,7 @@ end
 ---@param filetype string
 ---@param lines string[]
 ---@param rows table<integer, true>?
----@return table<integer, MiniFugitSyntaxSpan[]>
+---@return table<integer, FluxSyntaxSpan[]>
 local function spans_by_line(filetype, lines, rows)
     if filetype == '' or #lines == 0 or (rows ~= nil and next(rows) == nil) then
         return empty_spans(lines)
@@ -278,7 +278,7 @@ local function spans_by_line(filetype, lines, rows)
     return spans
 end
 
----@param parsed MiniFugitDiffLine[]
+---@param parsed FluxDiffLine[]
 ---@return table<'left'|'right', table<integer, true>>
 local function referenced_rows(parsed)
     local rows = { left = {}, right = {} }
@@ -300,9 +300,9 @@ local function referenced_rows(parsed)
     return rows
 end
 
----@param source MiniFugitDiffSyntaxSource?
----@param parsed MiniFugitDiffLine[]
----@return table<string, table<integer, MiniFugitSyntaxSpan[]>>?
+---@param source FluxDiffSyntaxSource?
+---@param parsed FluxDiffLine[]
+---@return table<string, table<integer, FluxSyntaxSpan[]>>?
 function M.spans_for_diff(source, parsed)
     if source == nil or source.filetype == '' then
         return nil

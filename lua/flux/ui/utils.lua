@@ -134,7 +134,7 @@ return ui_utils
 --     vim.cmd('aboveleft vnew')
 -- end
 --
--- ---@param lines (string|MiniFugitLine)[] Array of lines to replace in the window
+-- ---@param lines (string|FluxLine)[] Array of lines to replace in the window
 -- ---@param buf number In which buffer to set the lines
 -- function ui.set_lines(lines, buf)
 --     if not ui.ensure_buf(buf) then

@@ -1,4 +1,4 @@
----@class MiniFugitPreviewBufferActions
+---@class FluxPreviewBufferActions
 ---@field close_diff fun()
 ---@field jump_hunk fun(delta: integer)
 ---@field toggle_wrap fun()
@@ -12,7 +12,7 @@
 ---@field goto_code fun()
 ---@field toggle_help fun()
 
----@class MiniFugitPreviewActions : MiniFugitPreviewBufferActions
+---@class FluxPreviewActions : FluxPreviewBufferActions
 ---@field has_open_diff fun(): boolean
 ---@field focus_open_diff fun()
 ---@field refresh fun(state: GitStatusCursorState?)

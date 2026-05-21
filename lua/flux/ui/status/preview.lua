@@ -109,11 +109,11 @@ local function refresh_commit_item(self, state)
     return nil
 end
 
----@class MiniFugitDiffSourcePosition
+---@class FluxDiffSourcePosition
 ---@field path string
 ---@field line integer
 
----@class MiniFugitDiffWindowState
+---@class FluxDiffWindowState
 ---@field win_field string
 ---@field prev_buf_field string
 ---@field prev_winopts_field string
@@ -158,7 +158,7 @@ end
 ---@param self GitStatusWindow
 ---@param lines string[]?
 ---@param raw_rows integer[]?
----@param diff_hunks MiniFugitDiffHunk[]?
+---@param diff_hunks FluxDiffHunk[]?
 ---@param section GitStatusSectionName?
 ---@param entry GitStatusEntry?
 local function set_diff_context(
@@ -177,7 +177,7 @@ local function set_diff_context(
 end
 
 ---@param self GitStatusWindow
----@return MiniFugitPreviewActions
+---@return FluxPreviewActions
 local function preview_actions(self)
     return {
         close_diff = function()

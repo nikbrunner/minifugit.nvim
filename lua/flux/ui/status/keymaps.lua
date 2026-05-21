@@ -1,7 +1,7 @@
 local M = {}
 
 ---@param buf_id integer
----@param keymaps MiniFugitKeymapEntry[]
+---@param keymaps FluxKeymapEntry[]
 ---@param self GitStatusWindow
 function M.attach_status(buf_id, keymaps, self)
     assert(self ~= nil)
@@ -41,8 +41,8 @@ function M.attach_status(buf_id, keymaps, self)
 end
 
 ---@param buf_id integer
----@param keymaps MiniFugitKeymapEntry[]
----@param actions MiniFugitPreviewActions
+---@param keymaps FluxKeymapEntry[]
+---@param actions FluxPreviewActions
 function M.attach_diff_stacked(buf_id, keymaps, actions)
     for _, entry in ipairs(keymaps) do
         if entry.area == 'diff_stacked' then
@@ -73,8 +73,8 @@ function M.attach_diff_stacked(buf_id, keymaps, actions)
 end
 
 ---@param buf_id integer
----@param keymaps MiniFugitKeymapEntry[]
----@param actions MiniFugitPreviewActions
+---@param keymaps FluxKeymapEntry[]
+---@param actions FluxPreviewActions
 function M.attach_diff_split(buf_id, keymaps, actions)
     for _, entry in ipairs(keymaps) do
         if entry.area == 'diff_split' then
@@ -105,7 +105,7 @@ function M.attach_diff_split(buf_id, keymaps, actions)
 end
 
 ---@param buf_id integer
----@param keymaps MiniFugitKeymapEntry[]
+---@param keymaps FluxKeymapEntry[]
 ---@param close_fn fun()
 function M.attach_help(buf_id, keymaps, close_fn)
     for _, entry in ipairs(keymaps) do
@@ -122,7 +122,7 @@ function M.attach_help(buf_id, keymaps, close_fn)
 end
 
 ---@param bufnr integer
----@param actions MiniFugitPreviewActions
+---@param actions FluxPreviewActions
 function M.set_goto_code_keymap(bufnr, actions)
     vim.keymap.set('n', '<CR>', actions.goto_code, {
         buffer = bufnr,
@@ -184,7 +184,7 @@ function M.attach_cursor_autocmd(self)
 end
 
 ---@param self GitStatusWindow
----@param keymaps MiniFugitKeymapEntry[]
+---@param keymaps FluxKeymapEntry[]
 function M.attach(self, keymaps)
     assert(self.buf ~= nil)
     assert(self.buf:is_valid())

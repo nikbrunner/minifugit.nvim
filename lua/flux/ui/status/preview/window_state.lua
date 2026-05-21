@@ -26,7 +26,7 @@ local function clear_diff_context(self)
     self.diff_context_entry = nil
 end
 
----@type MiniFugitDiffWindowState[]
+---@type FluxDiffWindowState[]
 local DIFF_WINDOW_STATES = {
     {
         win_field = 'diff_win',
@@ -89,7 +89,7 @@ end
 
 ---@param self GitStatusWindow
 ---@param buf integer
----@return MiniFugitDiffWindowState?
+---@return FluxDiffWindowState?
 function M.diff_window_state_for_buf(self, buf)
     for _, state in ipairs(DIFF_WINDOW_STATES) do
         local diff_buf = self[state.buf_field]
@@ -104,7 +104,7 @@ end
 
 ---@param self GitStatusWindow
 ---@param win number
----@return MiniFugitDiffWindowState?
+---@return FluxDiffWindowState?
 function M.diff_window_state_for_win(self, win)
     for _, state in ipairs(DIFF_WINDOW_STATES) do
         if self[state.win_field] == win then
@@ -116,7 +116,7 @@ function M.diff_window_state_for_win(self, win)
 end
 
 ---@param self GitStatusWindow
----@param state MiniFugitDiffWindowState
+---@param state FluxDiffWindowState
 function M.clear_diff_window_state(self, state)
     self[state.win_field] = nil
     self[state.prev_buf_field] = nil
@@ -163,7 +163,7 @@ end
 
 ---@param self GitStatusWindow
 ---@param buf integer
----@param actions? MiniFugitPreviewActions
+---@param actions? FluxPreviewActions
 ---@param kind? '"stacked"'|'"split"'
 function M.attach_autocmds(self, buf, actions, kind)
     if self.autocmd_group == nil then
@@ -239,7 +239,7 @@ function M.delete_diff_buffers(buffers)
 end
 
 ---@param self GitStatusWindow
----@param state MiniFugitDiffWindowState
+---@param state FluxDiffWindowState
 ---@param keep_win boolean
 ---@return boolean
 function M.restore_or_close_diff_window(self, state, keep_win)
@@ -282,7 +282,7 @@ function M.restore_or_close_diff_window(self, state, keep_win)
 end
 
 ---@param self GitStatusWindow
----@param states MiniFugitDiffWindowState[]
+---@param states FluxDiffWindowState[]
 ---@return boolean
 function M.restore_or_close_diff_windows(self, states)
     local restored = false
@@ -296,8 +296,8 @@ function M.restore_or_close_diff_windows(self, states)
 end
 
 ---@param self GitStatusWindow
----@param current_state MiniFugitDiffWindowState
----@return MiniFugitDiffWindowState
+---@param current_state FluxDiffWindowState
+---@return FluxDiffWindowState
 function M.code_window_state_for_diff(self, current_state)
     if not current_state.split then
         return current_state
@@ -313,7 +313,7 @@ function M.code_window_state_for_diff(self, current_state)
 end
 
 ---@param self GitStatusWindow
----@param current_state MiniFugitDiffWindowState
+---@param current_state FluxDiffWindowState
 ---@return Buffer[]
 ---@return number
 function M.close_diff_windows_for_code(self, current_state)

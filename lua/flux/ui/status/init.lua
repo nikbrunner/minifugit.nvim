@@ -29,7 +29,7 @@ local git = require('flux.git')
 ---@field diff_preview_key string?
 ---@field diff_raw_lines string[]?
 ---@field diff_raw_rows integer[]?
----@field diff_hunks MiniFugitDiffHunk[]?
+---@field diff_hunks FluxDiffHunk[]?
 ---@field diff_section GitStatusSectionName?
 ---@field diff_context_entry GitStatusEntry?
 ---@field diff_prev_winopts GitStatusWindowOptions?
@@ -47,10 +47,10 @@ local git = require('flux.git')
 ---@field win_prev_buf integer?
 ---@field win_prev_winopts GitStatusWindowOptions?
 ---@field target_win number?
----@field config MiniFugitConfig
+---@field config FluxConfig
 ---@field groups table<string, string>
 ---@field highlights table<string, { ensure: fun() }>
----@field lines MiniFugitRenderLine[]
+---@field lines FluxRenderLine[]
 ---@field snapshot GitStatusSnapshot?
 ---@field filter string
 ---@field loading_message string?
@@ -101,7 +101,7 @@ local function create_fixed_highlight(name, style)
     }
 end
 
----@param config MiniFugitConfig
+---@param config FluxConfig
 ---@return table<string, string>
 local function create_highlight_groups(config)
     local groups = {}
@@ -116,7 +116,7 @@ local function create_highlight_groups(config)
     return groups
 end
 
----@param config MiniFugitConfig
+---@param config FluxConfig
 ---@return table<string, { ensure: fun() }>
 local function create_highlights(config)
     local highlights = {}
@@ -676,7 +676,7 @@ function GitStatusWindow:stop_loading()
     end
 end
 
----@param config MiniFugitConfig
+---@param config FluxConfig
 ---@return GitStatusWindow
 function GitStatusWindow.new(config)
     local self = setmetatable({}, GitStatusWindow)

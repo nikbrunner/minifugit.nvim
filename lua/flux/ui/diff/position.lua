@@ -1,17 +1,17 @@
 local parser = require('flux.ui.diff.parser')
 
----@alias MiniFugitDiffSide 'left'|'right'
+---@alias FluxDiffSide 'left'|'right'
 
----@class MiniFugitDiffHunkPosition
+---@class FluxDiffHunkPosition
 ---@field hunk_index integer
----@field side MiniFugitDiffSide
+---@field side FluxDiffSide
 ---@field offset integer
 
 local M = {}
 
----@param hunks MiniFugitDiffHunk[]?
+---@param hunks FluxDiffHunk[]?
 ---@param index integer?
----@return MiniFugitDiffHunk?
+---@return FluxDiffHunk?
 function M.hunk_by_index(hunks, index)
     if index == nil then
         return nil
@@ -26,9 +26,9 @@ function M.hunk_by_index(hunks, index)
     return nil
 end
 
----@param hunks MiniFugitDiffHunk[]?
+---@param hunks FluxDiffHunk[]?
 ---@param raw_row integer?
----@return MiniFugitDiffHunk?
+---@return FluxDiffHunk?
 local function hunk_at_raw_row(hunks, raw_row)
     if raw_row == nil then
         return nil
@@ -43,9 +43,9 @@ local function hunk_at_raw_row(hunks, raw_row)
     return nil
 end
 
----@param hunk MiniFugitDiffHunk
----@param line MiniFugitDiffLine?
----@return MiniFugitDiffSide
+---@param hunk FluxDiffHunk
+---@param line FluxDiffLine?
+---@return FluxDiffSide
 ---@return integer
 local function hunk_position_from_diff_line(hunk, line)
     if line == nil then
@@ -68,9 +68,9 @@ local function hunk_position_from_diff_line(hunk, line)
 end
 
 ---@param raw_lines string[]?
----@param hunks MiniFugitDiffHunk[]?
+---@param hunks FluxDiffHunk[]?
 ---@param raw_row integer?
----@return MiniFugitDiffHunkPosition?
+---@return FluxDiffHunkPosition?
 function M.hunk_position_for_raw_row(raw_lines, hunks, raw_row)
     local hunk = hunk_at_raw_row(hunks, raw_row)
 
@@ -84,8 +84,8 @@ function M.hunk_position_for_raw_row(raw_lines, hunks, raw_row)
     return { hunk_index = hunk.index, side = side, offset = offset }
 end
 
----@param hunk MiniFugitDiffHunk
----@param side MiniFugitDiffSide
+---@param hunk FluxDiffHunk
+---@param side FluxDiffSide
 ---@param row integer
 ---@return integer
 local function hunk_offset_for_split_row(hunk, side, row)
@@ -99,10 +99,10 @@ local function hunk_offset_for_split_row(hunk, side, row)
     return math.min(math.max(row - start, 0), count - 1)
 end
 
----@param hunks MiniFugitDiffHunk[]?
----@param side MiniFugitDiffSide
+---@param hunks FluxDiffHunk[]?
+---@param side FluxDiffSide
 ---@param row integer
----@return MiniFugitDiffHunk?
+---@return FluxDiffHunk?
 ---@return integer
 local function hunk_at_split_row(hunks, side, row)
     for _, hunk in ipairs(hunks or {}) do
@@ -125,10 +125,10 @@ local function hunk_at_split_row(hunks, side, row)
     return nil, 0
 end
 
----@param hunks MiniFugitDiffHunk[]?
----@param side MiniFugitDiffSide
+---@param hunks FluxDiffHunk[]?
+---@param side FluxDiffSide
 ---@param row integer
----@return MiniFugitDiffHunkPosition?
+---@return FluxDiffHunkPosition?
 function M.hunk_position_for_split_row(hunks, side, row)
     local hunk, offset = hunk_at_split_row(hunks, side, row)
 
@@ -139,7 +139,7 @@ function M.hunk_position_for_split_row(hunks, side, row)
     return { hunk_index = hunk.index, side = side, offset = offset }
 end
 
----@param line MiniFugitDiffLine?
+---@param line FluxDiffLine?
 ---@return integer?
 local function surviving_new_number(line)
     if line == nil then
@@ -154,8 +154,8 @@ local function surviving_new_number(line)
 end
 
 ---@param raw_lines string[]?
----@return MiniFugitDiffLine[]
----@return table<integer, MiniFugitDiffLine>
+---@return FluxDiffLine[]
+---@return table<integer, FluxDiffLine>
 local function parsed_lines(raw_lines)
     local lines = parser.parse_lines(raw_lines or {})
     local by_raw_row = {}
@@ -167,8 +167,8 @@ local function parsed_lines(raw_lines)
     return lines, by_raw_row
 end
 
----@param by_raw_row table<integer, MiniFugitDiffLine>
----@param hunk MiniFugitDiffHunk
+---@param by_raw_row table<integer, FluxDiffLine>
+---@param hunk FluxDiffHunk
 ---@param raw_row integer
 ---@return integer?
 local function nearest_surviving_new_number(by_raw_row, hunk, raw_row)
@@ -191,9 +191,9 @@ local function nearest_surviving_new_number(by_raw_row, hunk, raw_row)
     return hunk.new_start
 end
 
----@param by_raw_row table<integer, MiniFugitDiffLine>
----@param hunk MiniFugitDiffHunk
----@param line MiniFugitDiffLine
+---@param by_raw_row table<integer, FluxDiffLine>
+---@param hunk FluxDiffHunk
+---@param line FluxDiffLine
 ---@return integer?
 local function source_line_for_diff_line(by_raw_row, hunk, line)
     if line.kind == 'hunk' then
@@ -208,7 +208,7 @@ local function source_line_for_diff_line(by_raw_row, hunk, line)
 end
 
 ---@param raw_lines string[]?
----@param hunks MiniFugitDiffHunk[]?
+---@param hunks FluxDiffHunk[]?
 ---@param raw_row integer?
 ---@return integer?
 function M.source_line_for_stacked_row(raw_lines, hunks, raw_row)
@@ -233,7 +233,7 @@ function M.source_line_for_stacked_row(raw_lines, hunks, raw_row)
 end
 
 ---@param raw_lines string[]?
----@param hunks MiniFugitDiffHunk[]?
+---@param hunks FluxDiffHunk[]?
 ---@param old_line integer
 ---@return integer
 function M.old_line_to_new_line(raw_lines, hunks, old_line)
@@ -283,7 +283,7 @@ function M.old_line_to_new_line(raw_lines, hunks, old_line)
 end
 
 ---@param raw_lines string[]?
----@param hunk MiniFugitDiffHunk
+---@param hunk FluxDiffHunk
 ---@param offset integer
 ---@return integer?
 local function source_line_for_left_hunk(raw_lines, hunk, offset)
@@ -314,7 +314,7 @@ local function source_line_for_left_hunk(raw_lines, hunk, offset)
 end
 
 ---@param raw_lines string[]?
----@param hunk MiniFugitDiffHunk
+---@param hunk FluxDiffHunk
 ---@param offset integer
 ---@return integer?
 local function source_line_for_right_hunk(raw_lines, hunk, offset)
@@ -328,8 +328,8 @@ local function source_line_for_right_hunk(raw_lines, hunk, offset)
 end
 
 ---@param raw_lines string[]?
----@param hunks MiniFugitDiffHunk[]?
----@param side MiniFugitDiffSide
+---@param hunks FluxDiffHunk[]?
+---@param side FluxDiffSide
 ---@param row integer
 ---@return integer?
 function M.source_line_for_split_row(raw_lines, hunks, side, row)
@@ -352,8 +352,8 @@ end
 
 ---@param raw_lines string[]?
 ---@param raw_rows integer[]?
----@param hunk MiniFugitDiffHunk
----@param side MiniFugitDiffSide
+---@param hunk FluxDiffHunk
+---@param side FluxDiffSide
 ---@param offset integer
 ---@return integer?
 function M.stacked_row_for_hunk_position(
@@ -396,9 +396,9 @@ function M.stacked_row_for_hunk_position(
     return hunk.stacked_row
 end
 
----@param hunk MiniFugitDiffHunk
----@param position MiniFugitDiffHunkPosition
----@return MiniFugitDiffSide
+---@param hunk FluxDiffHunk
+---@param position FluxDiffHunkPosition
+---@return FluxDiffSide
 ---@return integer
 function M.split_row_for_hunk_position(hunk, position)
     local side = position.side

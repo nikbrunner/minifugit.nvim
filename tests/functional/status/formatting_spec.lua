@@ -4,14 +4,14 @@ local render = require('flux.ui.render')
 
 ---@type table<string, string>
 local groups = {
-    staged = 'MiniFugitStage',
-    unstaged = 'MiniFugitUnstage',
-    untracked = 'MiniFugitUntracked',
-    conflict = 'MiniFugitConflict',
-    head = 'MiniFugitHead',
-    ignored = 'MiniFugitIgnored',
-    unpushed = 'MiniFugitUnpushed',
-    loading = 'MiniFugitLoading',
+    staged = 'FluxStage',
+    unstaged = 'FluxUnstage',
+    untracked = 'FluxUntracked',
+    conflict = 'FluxConflict',
+    head = 'FluxHead',
+    ignored = 'FluxIgnored',
+    unpushed = 'FluxUnpushed',
+    loading = 'FluxLoading',
 }
 
 ---@param snapshot GitStatusSnapshot
@@ -266,7 +266,7 @@ describe('flux.status.formatting', function()
 
             assert.are.equal('M  file.txt', line.text)
             assert.are.equal(1, #line.highlights)
-            assert.are.equal('MiniFugitStage', line.highlights[1].group)
+            assert.are.equal('FluxStage', line.highlights[1].group)
             assert.are.equal(0, line.highlights[1].start_col)
         end)
 
@@ -281,7 +281,7 @@ describe('flux.status.formatting', function()
             -- Should have highlight on second char (index 1)
             local has_unstaged_hl = false
             for _, hl in ipairs(line.highlights) do
-                if hl.group == 'MiniFugitUnstage' and hl.start_col == 1 then
+                if hl.group == 'FluxUnstage' and hl.start_col == 1 then
                     has_unstaged_hl = true
                 end
             end
@@ -314,7 +314,7 @@ describe('flux.status.formatting', function()
             assert.are.equal('abc1234 feat: add feature', line.text)
             -- Should have unpushed highlight on the hash part
             assert.is_true(#line.highlights > 0)
-            assert.are.equal('MiniFugitUnpushed', line.highlights[1].group)
+            assert.are.equal('FluxUnpushed', line.highlights[1].group)
         end)
     end)
 

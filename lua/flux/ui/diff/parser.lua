@@ -1,11 +1,11 @@
----@class MiniFugitDiffLine
+---@class FluxDiffLine
 ---@field kind 'header'|'hunk'|'context'|'added'|'removed'
 ---@field old_number integer?
 ---@field new_number integer?
 ---@field raw_row integer
 ---@field text string
 
----@class MiniFugitDiffHunk
+---@class FluxDiffHunk
 ---@field index integer
 ---@field raw_header_row integer
 ---@field raw_start_row integer
@@ -78,7 +78,7 @@ function M.parse_hunk_header(hunk_header)
 end
 
 ---@param lines string[]
----@return MiniFugitDiffLine[]
+---@return FluxDiffLine[]
 function M.parse_lines(lines)
     local parsed = {}
     local old_number
@@ -164,7 +164,7 @@ local function range_end(start, count)
 end
 
 ---@param lines string[]
----@return MiniFugitDiffHunk[]
+---@return FluxDiffHunk[]
 function M.parse_hunks(lines)
     local hunks = {}
     local current
@@ -209,7 +209,7 @@ end
 
 ---@param raw_lines string[]?
 ---@param raw_row integer?
----@return MiniFugitDiffLine?
+---@return FluxDiffLine?
 function M.line_at_raw_row(raw_lines, raw_row)
     if raw_lines == nil or raw_row == nil then
         return nil
@@ -224,7 +224,7 @@ function M.line_at_raw_row(raw_lines, raw_row)
     return nil
 end
 
----@param hunks MiniFugitDiffHunk[]
+---@param hunks FluxDiffHunk[]
 ---@param raw_rows integer[]?
 function M.assign_stacked_rows(hunks, raw_rows)
     if raw_rows == nil then

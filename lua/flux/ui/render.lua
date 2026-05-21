@@ -1,11 +1,11 @@
----@class MiniFugitRenderSpan
+---@class FluxRenderSpan
 ---@field group string
 ---@field start_col integer
 ---@field end_col integer
 
----@class MiniFugitRenderLine
+---@class FluxRenderLine
 ---@field text string
----@field highlights MiniFugitRenderSpan[]
+---@field highlights FluxRenderSpan[]
 ---@field line_hl_group string?
 ---@field data any?
 
@@ -15,7 +15,7 @@ local namespace = vim.api.nvim_create_namespace('flux.ui.render')
 
 ---@param text string
 ---@param data any?
----@return MiniFugitRenderLine
+---@return FluxRenderLine
 function M.line(text, data)
     return {
         text = text,
@@ -24,7 +24,7 @@ function M.line(text, data)
     }
 end
 
----@param line MiniFugitRenderLine
+---@param line FluxRenderLine
 ---@param group string?
 ---@param start_col integer
 ---@param end_col integer?
@@ -40,7 +40,7 @@ function M.add_highlight(line, group, start_col, end_col)
     })
 end
 
----@param lines MiniFugitRenderLine[]
+---@param lines FluxRenderLine[]
 ---@return string[]
 function M.text_lines(lines)
     return vim.tbl_map(function(line)
@@ -48,7 +48,7 @@ function M.text_lines(lines)
     end, lines)
 end
 
----@param line MiniFugitRenderLine
+---@param line FluxRenderLine
 ---@param start_col integer
 ---@param end_col integer
 ---@return integer?
@@ -67,7 +67,7 @@ local function clamp_highlight_range(line, start_col, end_col)
 end
 
 ---@param buf integer
----@param lines MiniFugitRenderLine[]
+---@param lines FluxRenderLine[]
 function M.apply(buf, lines)
     if not vim.api.nvim_buf_is_valid(buf) then
         return

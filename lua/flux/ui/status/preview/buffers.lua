@@ -6,7 +6,7 @@ local keymaps = require('flux.ui.status.keymaps')
 local M = {}
 
 ---@param bufnr integer
----@param actions MiniFugitPreviewBufferActions
+---@param actions FluxPreviewBufferActions
 function M.set_goto_code_keymap(bufnr, actions)
     keymaps.set_goto_code_keymap(bufnr, actions)
 end
@@ -25,7 +25,7 @@ function M.set_plain_lines(buf, lines)
 end
 
 ---@param self GitStatusWindow
----@param actions MiniFugitPreviewBufferActions
+---@param actions FluxPreviewBufferActions
 ---@return Buffer
 function M.ensure_stacked(self, actions)
     if self.diff_buf and self.diff_buf:is_valid() then
@@ -56,7 +56,7 @@ end
 ---@param self GitStatusWindow
 ---@param buf_name string
 ---@param existing Buffer?
----@param actions MiniFugitPreviewBufferActions
+---@param actions FluxPreviewBufferActions
 ---@return Buffer
 function M.ensure_split(self, buf_name, existing, actions)
     if existing ~= nil and existing:is_valid() then
