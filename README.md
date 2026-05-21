@@ -65,25 +65,10 @@ require('flux').setup({
 
 ### Highlight Groups
 
-Flux defines its own highlight groups (all prefixed `Flux*`) in the same
-[defaults file](lua/flux/config/defaults.lua). Each one falls back to a
-standard Neovim group when available, then to a hardcoded hex color.
-
-| Group | Role |
-| --- | --- |
-| `FluxStage` | Staged entries |
-| `FluxUnstage` | Unstaged entries |
-| `FluxUntracked` | Untracked entries |
-| `FluxIgnored` | Ignored entries |
-| `FluxConflict` | Conflict entries |
-| `FluxHead` | HEAD label |
-| `FluxDiffAdded` | Added diff lines |
-| `FluxDiffRemoved` | Removed diff lines |
-| `FluxUnpushed` | Unpushed commits |
-| `FluxLoading` | Loading spinner |
-| `FluxDiffLineNr` | Diff line numbers |
-| `FluxDiffHeader` | Diff metadata headers |
-| `FluxDiffHunkHeader` | Hunk headers |
+Flux defines its own highlight groups (all prefixed `Flux*`). Each one falls
+back to a standard Neovim group when available, then to a hardcoded hex color.
+See **[`lua/flux/config/defaults.lua`](lua/flux/config/defaults.lua)** for the
+full list and their fallback sources.
 
 ## Usage
 
