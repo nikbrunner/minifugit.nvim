@@ -193,7 +193,7 @@ function M.ensure_split(_, buf_name, existing, actions)
         silent = true,
     })
 
-    vim.keymap.set('n', 'al', actions.toggle_layout, {
+    vim.keymap.set('n', 'l', actions.toggle_layout, {
         buffer = buf.id,
         desc = 'Toggle stacked/split git diff preview layout',
         silent = true,
