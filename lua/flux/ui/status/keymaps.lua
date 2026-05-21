@@ -143,7 +143,20 @@ function M.attach_cursor_autocmd(self)
     assert(self.buf ~= nil)
     assert(self.buf:is_valid())
 
-    vim.api.nvim_create_autocmd('CursorMoved', {
+    -- Clear any prior CursorMoved autocmds on this buffer to avoid
+    -- duplicates when attach_cursor_autocmd is called more than once.
+    -- When autocmd_group is nil (first call during new()), clear all
+    -- CursorMoved events on the buffer regardless of group.
+    local clear_opts = {
+        buffer = self.buf.id,
+        event = 'CursorMoved',
+    }
+    if self.autocmd_group ~= nil then
+        clear_opts.group = self.autocmd_group
+    end
+    vim.api.nvim_clear_autocmds(clear_opts)
+
+    local create_opts = {
         buffer = self.buf.id,
         callback = function()
             local mode = vim.fn.mode()
@@ -162,7 +175,12 @@ function M.attach_cursor_autocmd(self)
                 end
             end
         end,
-    })
+    }
+    if self.autocmd_group ~= nil then
+        create_opts.group = self.autocmd_group
+    end
+
+    vim.api.nvim_create_autocmd('CursorMoved', create_opts)
 end
 
 ---@param self GitStatusWindow

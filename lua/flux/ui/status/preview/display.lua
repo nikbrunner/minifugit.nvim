@@ -257,7 +257,7 @@ function M.show_stacked(self, diff_lines, preview_key, title, actions)
     end
 
     local buf = buffers.ensure_stacked(self, actions)
-    window_state.attach_autocmds(self, buf.id)
+    window_state.attach_autocmds(self, buf.id, actions, 'stacked')
 
     vim.bo[buf.id].modifiable = true
     buf:set_lines(render.text_lines(diff_lines))
@@ -389,8 +389,8 @@ function M.show_split(self, split_diff, diff_lines, preview_key, title, actions)
 
     self.diff_left_buf = left_buf
     self.diff_right_buf = right_buf
-    window_state.attach_autocmds(self, left_buf.id)
-    window_state.attach_autocmds(self, right_buf.id)
+    window_state.attach_autocmds(self, left_buf.id, actions, 'split')
+    window_state.attach_autocmds(self, right_buf.id, actions, 'split')
     buffers.set_plain_lines(left_buf, split_diff.left.lines)
     buffers.set_plain_lines(right_buf, split_diff.right.lines)
     mark_split_changes(left_buf, right_buf, diff_lines, self.groups)

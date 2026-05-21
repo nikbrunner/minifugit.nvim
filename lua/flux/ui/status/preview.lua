@@ -415,27 +415,25 @@ end
 
 ---@param self GitStatusWindow
 function M.close_diff(self)
-    local closed = false
+    local restored = false
 
     if window_state.has_any_split_diff(self) then
-        closed = window_state.restore_or_close_diff_windows(
+        restored = window_state.restore_or_close_diff_windows(
             self,
             window_state.SPLIT_DIFF_CLOSE_STATES
         )
     end
 
     if window_state.has_open_stacked_diff(self) then
-        closed = window_state.restore_or_close_diff_window(
+        restored = window_state.restore_or_close_diff_window(
             self,
             window_state.STACKED_DIFF_STATE,
             false
-        ) or closed
+        ) or restored
     end
 
-    if not closed then
-        return
-    end
-
+    -- Always clean up diff state, even when the diff window was closed
+    -- externally (e.g. via :close) and the restore helpers returned false.
     window_state.clear_missing_diff_window_states(self)
     self.diff_preview_key = nil
     set_diff_context(self, nil, nil, nil, nil, nil)

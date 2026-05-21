@@ -163,7 +163,9 @@ end
 
 ---@param self GitStatusWindow
 ---@param buf integer
-function M.attach_autocmds(self, buf)
+---@param actions? MiniFugitPreviewActions
+---@param kind? '"stacked"'|'"split"'
+function M.attach_autocmds(self, buf, actions, kind)
     if self.autocmd_group == nil then
         return
     end
@@ -181,6 +183,29 @@ function M.attach_autocmds(self, buf)
             end)
         end,
     })
+
+    if actions ~= nil and kind ~= nil then
+        local keymaps = require('flux.ui.status.keymaps')
+        vim.api.nvim_create_autocmd('BufEnter', {
+            group = self.autocmd_group,
+            buffer = buf,
+            callback = function()
+                if kind == 'split' then
+                    keymaps.attach_diff_split(
+                        buf,
+                        self.config.keymaps_diff_split,
+                        actions
+                    )
+                else
+                    keymaps.attach_diff_stacked(
+                        buf,
+                        self.config.keymaps_diff_stacked,
+                        actions
+                    )
+                end
+            end,
+        })
+    end
 end
 
 ---@param self GitStatusWindow

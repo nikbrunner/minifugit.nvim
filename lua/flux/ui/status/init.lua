@@ -244,6 +244,10 @@ local function ensure_autocmds(self)
             refresh_highlights(self)
         end,
     })
+
+    -- Re-attach the CursorMoved autocmd now that the group exists so it is
+    -- properly owned and cleaned up on destroy.
+    keymaps.attach_cursor_autocmd(self)
 end
 
 function GitStatusWindow:show()

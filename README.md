@@ -144,6 +144,40 @@ Default diff-preview mappings:
 | n | `am` | Alternate metadata rows *(stacked only)* |
 | n | `al` | Alternate stacked/split layout |
 
+## Testing
+
+Tests use [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)'s busted-style
+harness, vendored in the repo.
+
+### Run with just (recommended)
+
+```bash
+just test
+```
+
+This clones plenary if needed, pins it to the expected commit, and runs the
+full suite headlessly.
+
+### Run without just
+
+```bash
+nvim --headless --noplugin \
+  -u tests/minimal_init.lua \
+  -c "lua require('plenary.test_harness').test_directory('tests', { minimal_init = 'tests/minimal_init.lua' })"
+```
+
+### Run a single test file
+
+```bash
+nvim --headless --noplugin \
+  -u tests/minimal_init.lua \
+  -c "lua require('plenary.test_harness').test_directory('tests/functional/diff/parser_spec.lua', { minimal_init = 'tests/minimal_init.lua' })"
+```
+
+Test files live under `tests/functional/` (pure-Lua unit/integration) and
+`tests/ui/` (end-to-end with real Neovim windows and a temporary git
+repository).
+
 ## Credits
 
 flux.nvim is a fork of [minifugit.nvim](https://github.com/vieitesss/minifugit.nvim)
