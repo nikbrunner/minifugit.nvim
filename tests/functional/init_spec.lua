@@ -9,9 +9,12 @@ describe('minifugit', function()
         local minifugit = require('minifugit').setup()
 
         assert.is_true(minifugit.did_setup)
-        assert.are.equal(false, minifugit.options.preview.wrap)
-        assert.are.equal('stacked', minifugit.options.preview.diff_layout)
-        assert.are.equal(0.4, minifugit.options.status.width)
+        assert.are.equal(false, minifugit.config.options.preview.wrap)
+        assert.are.equal(
+            'stacked',
+            minifugit.config.options.preview.diff_layout
+        )
+        assert.are.equal(0.4, minifugit.config.options.status.width)
     end)
 
     it('merges valid options without losing defaults', function()
@@ -21,11 +24,11 @@ describe('minifugit', function()
             status = { min_width = 30 },
         })
 
-        assert.are.equal(false, minifugit.options.preview.show_metadata)
-        assert.are.equal('split', minifugit.options.preview.diff_layout)
-        assert.are.equal(false, minifugit.options.preview.wrap)
-        assert.are.equal(30, minifugit.options.status.min_width)
-        assert.are.equal(0.4, minifugit.options.status.width)
+        assert.are.equal(false, minifugit.config.options.preview.show_metadata)
+        assert.are.equal('split', minifugit.config.options.preview.diff_layout)
+        assert.are.equal(false, minifugit.config.options.preview.wrap)
+        assert.are.equal(30, minifugit.config.options.status.min_width)
+        assert.are.equal(0.4, minifugit.config.options.status.width)
     end)
 
     it('rejects invalid setup options', function()

@@ -1,163 +1,141 @@
-local preview = require('minifugit.ui.status.preview')
-
 local M = {}
 
+---@param buf_id integer
+---@param keymaps MiniFugitKeymapEntry[]
 ---@param self GitStatusWindow
-function M.attach_buffer_keymaps(self)
-    assert(self.buf ~= nil)
-    assert(self.buf:is_valid())
+function M.attach_status(buf_id, keymaps, self)
+    assert(self ~= nil)
 
-    vim.keymap.set('n', '<CR>', function()
-        self:enter_entry()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Open git status entry',
+    for _, entry in ipairs(keymaps) do
+        if entry.area == 'status' then
+            local action = entry.action
+
+            -- Resolve action name to a function on self, with special-casing
+            -- for actions that need arguments or call module-level helpers.
+            local callback
+            if action == 'discard_entry' then
+                local force = entry.args ~= nil and entry.args.force or false
+                callback = function()
+                    self:discard_entry(force)
+                end
+            elseif action == 'toggle_preview_layout' then
+                callback = function()
+                    local preview_mod = require('minifugit.ui.status.preview')
+                    preview_mod.toggle_layout(self)
+                end
+            else
+                callback = function()
+                    self[action](self)
+                end
+            end
+
+            for _, mode in ipairs(entry.modes) do
+                vim.keymap.set(mode, entry.key, callback, {
+                    buffer = buf_id,
+                    desc = entry.desc,
+                    silent = true,
+                })
+            end
+        end
+    end
+end
+
+---@param buf_id integer
+---@param keymaps MiniFugitKeymapEntry[]
+---@param actions MiniFugitPreviewActions
+function M.attach_diff_stacked(buf_id, keymaps, actions)
+    for _, entry in ipairs(keymaps) do
+        if entry.area == 'diff_stacked' then
+            local callback
+            if entry.action == 'jump_hunk_next' then
+                callback = function()
+                    actions.jump_hunk(1)
+                end
+            elseif entry.action == 'jump_hunk_prev' then
+                callback = function()
+                    actions.jump_hunk(-1)
+                end
+            else
+                callback = actions[entry.action]
+            end
+
+            if callback ~= nil then
+                for _, mode in ipairs(entry.modes) do
+                    vim.keymap.set(mode, entry.key, callback, {
+                        buffer = buf_id,
+                        desc = entry.desc,
+                        silent = true,
+                    })
+                end
+            end
+        end
+    end
+end
+
+---@param buf_id integer
+---@param keymaps MiniFugitKeymapEntry[]
+---@param actions MiniFugitPreviewActions
+function M.attach_diff_split(buf_id, keymaps, actions)
+    for _, entry in ipairs(keymaps) do
+        if entry.area == 'diff_split' then
+            local callback
+            if entry.action == 'jump_hunk_next' then
+                callback = function()
+                    vim.cmd('normal! ]c')
+                end
+            elseif entry.action == 'jump_hunk_prev' then
+                callback = function()
+                    vim.cmd('normal! [c')
+                end
+            else
+                callback = actions[entry.action]
+            end
+
+            if callback ~= nil then
+                for _, mode in ipairs(entry.modes) do
+                    vim.keymap.set(mode, entry.key, callback, {
+                        buffer = buf_id,
+                        desc = entry.desc,
+                        silent = true,
+                    })
+                end
+            end
+        end
+    end
+end
+
+---@param buf_id integer
+---@param keymaps MiniFugitKeymapEntry[]
+---@param close_fn fun()
+function M.attach_help(buf_id, keymaps, close_fn)
+    for _, entry in ipairs(keymaps) do
+        if entry.area == 'help' then
+            for _, mode in ipairs(entry.modes) do
+                vim.keymap.set(mode, entry.key, close_fn, {
+                    buffer = buf_id,
+                    desc = entry.desc,
+                    silent = true,
+                })
+            end
+        end
+    end
+end
+
+---@param bufnr integer
+---@param actions MiniFugitPreviewActions
+function M.set_goto_code_keymap(bufnr, actions)
+    vim.keymap.set('n', '<CR>', actions.goto_code, {
+        buffer = bufnr,
+        desc = 'Go to code under git diff cursor',
         silent = true,
     })
+end
 
-    vim.keymap.set('n', 'o', function()
-        self:enter_entry_and_close()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Open entry and close status',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '=', function()
-        self:diff_entry()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Show git status entry diff',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'q', function()
-        self:close()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Close git status window',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '/', function()
-        self:filter_entries()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Filter git status entries',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '<BS>', function()
-        self:clear_filter()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Clear git status filter',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'r', function()
-        self:refresh()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Refresh git status',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 's', function()
-        self:stage_entry()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Stage git status entry',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'u', function()
-        self:unstage_entry()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Unstage git status entry',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'S', function()
-        self:stage_all_entries()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Stage all git status entries',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'U', function()
-        self:unstage_all_entries()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Unstage all git status entries',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'd', function()
-        self:discard_entry(false)
-    end, {
-        buffer = self.buf.id,
-        desc = 'Discard git status entry',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'D', function()
-        self:discard_entry(true)
-    end, {
-        buffer = self.buf.id,
-        desc = 'Discard git status entry without confirmation',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'c', function()
-        self:commit()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Commit staged changes',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'p', function()
-        self:push()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Push unpushed commits',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '?', function()
-        self:toggle_help()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Toggle git status mappings',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'l', function()
-        preview.toggle_layout(self)
-    end, {
-        buffer = self.buf.id,
-        desc = 'Toggle stacked/split diff preview layout',
-        silent = true,
-    })
-
-    vim.keymap.set('x', 's', function()
-        self:stage_selected_entries()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Stage selected git status entries',
-        silent = true,
-    })
-
-    vim.keymap.set('x', 'u', function()
-        self:unstage_selected_entries()
-    end, {
-        buffer = self.buf.id,
-        desc = 'Unstage selected git status entries',
-        silent = true,
-    })
+---@param bufnr integer?
+function M.clear_goto_code_keymap(bufnr)
+    if bufnr ~= nil and vim.api.nvim_buf_is_valid(bufnr) then
+        pcall(vim.keymap.del, 'n', '<CR>', { buffer = bufnr })
+    end
 end
 
 ---@param self GitStatusWindow
@@ -174,11 +152,13 @@ function M.attach_cursor_autocmd(self)
                 return
             end
 
-            if preview.has_open_diff(self) then
+            local preview_mod = require('minifugit.ui.status.preview')
+
+            if preview_mod.has_open_diff(self) then
                 local opts = { force = false, notify = false }
 
-                if not preview.preview_current_commit(self, opts) then
-                    preview.preview_current_entry(self, opts)
+                if not preview_mod.preview_current_commit(self, opts) then
+                    preview_mod.preview_current_entry(self, opts)
                 end
             end
         end,
@@ -186,8 +166,12 @@ function M.attach_cursor_autocmd(self)
 end
 
 ---@param self GitStatusWindow
-function M.attach(self)
-    M.attach_buffer_keymaps(self)
+---@param keymaps MiniFugitKeymapEntry[]
+function M.attach(self, keymaps)
+    assert(self.buf ~= nil)
+    assert(self.buf:is_valid())
+
+    M.attach_status(self.buf.id, keymaps, self)
     M.attach_cursor_autocmd(self)
 end
 

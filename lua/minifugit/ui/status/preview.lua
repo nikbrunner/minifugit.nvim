@@ -147,7 +147,7 @@ local function resolved_layout(self)
     local layout = self.diff_layout_override or self.diff_layout
 
     if layout == 'auto' then
-        return vim.o.columns >= self.options.preview.diff_auto_threshold
+        return vim.o.columns >= self.config.options.preview.diff_auto_threshold
                 and 'split'
             or 'stacked'
     end

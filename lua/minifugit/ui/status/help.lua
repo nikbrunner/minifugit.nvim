@@ -1,49 +1,13 @@
 local Buffer = require('minifugit.ui.buffer')
 local common = require('minifugit.ui.status.common')
+local keymaps = require('minifugit.ui.status.keymaps')
 
 local M = {}
 
-local sections = {
-    {
-        title = 'Status window mappings',
-        rows = {
-            { '<CR>', 'Open entry' },
-            { 'o', 'Open entry and close status' },
-            { '=', 'Preview diff' },
-            { 'q', 'Close status window' },
-            { '/', 'Filter entries' },
-            { '<BS>', 'Clear filter' },
-            { 'r', 'Refresh status' },
-            { 's', 'Stage or unstage entry' },
-            { 'u', 'Unstage entry' },
-            { 'S', 'Stage all entries' },
-            { 'U', 'Unstage all entries' },
-            { 'd', 'Discard with confirmation' },
-            { 'D', 'Discard without confirmation' },
-            { 'c', 'Commit staged changes' },
-            { 'p', 'Push unpushed commits' },
-            { 'visual s', 'Stage selection' },
-            { 'visual u', 'Unstage selection' },
-            { 'l', 'Toggle stacked/split diff layout' },
-            { '?', 'Toggle mappings help' },
-        },
-    },
-    {
-        title = 'Diff preview mappings',
-        rows = {
-            { 'q', 'Close diff preview' },
-            { '<CR>', 'Go to code under cursor', status_diff = true },
-            { '[h / ]h', 'Jump to previous or next hunk' },
-            { 's', 'Stage current unstaged hunk' },
-            { 'u', 'Unstage current staged hunk' },
-            { 'd', 'Discard current unstaged hunk' },
-            { 'aw', 'Toggle wrap' },
-            { 'an', 'Toggle line numbers' },
-            { 'am', 'Toggle metadata rows (stacked only)' },
-            { 'l', 'Toggle stacked/split layout' },
-            { '?', 'Toggle mappings help' },
-        },
-    },
+local AREA_TITLES = {
+    status = 'Status window mappings',
+    diff_stacked = 'Diff preview mappings',
+    diff_split = 'Diff preview mappings',
 }
 
 ---@param text string
@@ -57,40 +21,67 @@ local function pad(text, width)
     return text .. string.rep(' ', width - #text)
 end
 
----@param opts { include_status_diff_mappings: boolean }
+---@param self GitStatusWindow
 ---@return string[]
-local function help_lines(opts)
+local function help_lines(self)
     local lines = {}
-    local key_width = 0
+    local all_entries = {}
 
-    for _, section in ipairs(sections) do
-        for _, row in ipairs(section.rows) do
-            if opts.include_status_diff_mappings or not row.status_diff then
-                key_width = math.max(key_width, #row[1])
+    -- Collect all keymap entries across areas, deduplicating by key+desc
+    -- so that mappings shared between stacked and split appear once.
+    local seen = {}
+
+    local function add_entries(entries)
+        for _, entry in ipairs(entries) do
+            local sig = entry.key .. '\0' .. entry.desc
+            if not seen[sig] then
+                seen[sig] = true
+                all_entries[#all_entries + 1] = entry
             end
         end
+    end
+
+    add_entries(self.config.keymaps_status)
+    add_entries(self.config.keymaps_diff_stacked)
+    add_entries(self.config.keymaps_diff_split)
+
+    -- Compute max key width.
+    local key_width = 0
+
+    for _, entry in ipairs(all_entries) do
+        local display_key = entry.key
+        if #entry.modes > 0 and entry.modes[1] ~= 'n' then
+            display_key = entry.modes[1] .. ' ' .. entry.key
+        end
+        key_width = math.max(key_width, #display_key)
     end
 
     table.insert(lines, 'Mappings')
     table.insert(lines, '')
 
-    for section_index, section in ipairs(sections) do
-        table.insert(lines, section.title)
-        table.insert(lines, pad('Key', key_width) .. '  Action')
-        table.insert(
-            lines,
-            string.rep('-', key_width) .. '  ' .. string.rep('-', 32)
-        )
+    -- Render each area section.
+    local areas_rendered = {}
 
-        for _, row in ipairs(section.rows) do
-            if opts.include_status_diff_mappings or not row.status_diff then
-                table.insert(lines, pad(row[1], key_width) .. '  ' .. row[2])
-            end
+    for _, entry in ipairs(all_entries) do
+        local title = AREA_TITLES[entry.area]
+
+        if title ~= nil and not areas_rendered[entry.area] then
+            areas_rendered[entry.area] = true
+
+            table.insert(lines, title)
+            table.insert(lines, pad('Key', key_width) .. '  Action')
+            table.insert(
+                lines,
+                string.rep('-', key_width) .. '  ' .. string.rep('-', 32)
+            )
         end
 
-        if section_index < #sections then
-            table.insert(lines, '')
+        local display_key = entry.key
+        if #entry.modes > 0 and entry.modes[1] ~= 'n' then
+            display_key = entry.modes[1] .. ' ' .. entry.key
         end
+
+        table.insert(lines, pad(display_key, key_width) .. '  ' .. entry.desc)
     end
 
     return lines
@@ -146,9 +137,7 @@ function M.toggle(self)
         return
     end
 
-    local lines = help_lines({
-        include_status_diff_mappings = self.diff_context_entry ~= nil,
-    })
+    local lines = help_lines(self)
     local max_width = math.min(vim.o.columns, math.max(24, vim.o.columns - 4))
     local max_height = math.min(vim.o.lines, math.max(6, vim.o.lines - 4))
     local width = math.min(content_width(lines) + 4, max_width)
@@ -185,15 +174,9 @@ function M.toggle(self)
     vim.wo[self.help_win].wrap = false
     vim.wo[self.help_win].cursorline = false
 
-    for _, key in ipairs({ 'q', '?', '<Esc>' }) do
-        vim.keymap.set('n', key, function()
-            M.close(self)
-        end, {
-            buffer = self.help_buf.id,
-            desc = 'Close git mappings help',
-            silent = true,
-        })
-    end
+    keymaps.attach_help(self.help_buf.id, self.config.keymaps_help, function()
+        M.close(self)
+    end)
 end
 
 return M

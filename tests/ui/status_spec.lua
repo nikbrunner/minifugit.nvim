@@ -340,7 +340,7 @@ describe('minifugit status UI', function()
             vim.wo[file_win].statuscolumn = 'user-statuscolumn'
             local before = capture_winopts(file_win)
 
-            minifugit.options.preview.diff_layout = 'stacked'
+            minifugit.config.options.preview.diff_layout = 'stacked'
             minifugit.status()
             vim.api.nvim_win_set_cursor(
                 assert(minifugit.gsw.win),
@@ -372,7 +372,7 @@ describe('minifugit status UI', function()
                 { 'one', 'two' }
             )
 
-            minifugit.options.preview.diff_layout = 'stacked'
+            minifugit.config.options.preview.diff_layout = 'stacked'
             minifugit.status()
             vim.api.nvim_set_current_win(minifugit.gsw.win)
             vim.api.nvim_win_set_cursor(
@@ -410,7 +410,7 @@ describe('minifugit status UI', function()
         vim.wo[file_win].statuscolumn = 'split-statuscolumn'
         local before = capture_winopts(file_win)
 
-        minifugit.options.preview.diff_layout = 'split'
+        minifugit.config.options.preview.diff_layout = 'split'
         minifugit.status()
         vim.api.nvim_win_set_cursor(
             minifugit.gsw.win,
@@ -490,7 +490,7 @@ describe('minifugit status UI', function()
             vim.wo.statuscolumn = 'diff-jump-statuscolumn'
             local file_opts = capture_winopts(vim.api.nvim_get_current_win())
 
-            minifugit.options.preview.diff_layout = 'stacked'
+            minifugit.config.options.preview.diff_layout = 'stacked'
             minifugit.status()
             vim.api.nvim_win_set_cursor(
                 assert(minifugit.gsw.win),
@@ -541,7 +541,7 @@ describe('minifugit status UI', function()
             vim.wo[file_win].wrap = true
             local file_opts = capture_winopts(file_win)
 
-            minifugit.options.preview.diff_layout = 'stacked'
+            minifugit.config.options.preview.diff_layout = 'stacked'
             minifugit.status()
             vim.api.nvim_win_set_cursor(
                 assert(minifugit.gsw.win),
@@ -577,7 +577,7 @@ describe('minifugit status UI', function()
             vim.wo[file_win].wrap = true
             local file_opts = capture_winopts(file_win)
 
-            minifugit.options.preview.diff_layout = 'split'
+            minifugit.config.options.preview.diff_layout = 'split'
             minifugit.status()
             vim.api.nvim_win_set_cursor(
                 assert(minifugit.gsw.win),
@@ -615,7 +615,7 @@ describe('minifugit status UI', function()
             vim.wo.statuscolumn = 'split-jump-statuscolumn'
             local file_opts = capture_winopts(vim.api.nvim_get_current_win())
 
-            minifugit.options.preview.diff_layout = 'split'
+            minifugit.config.options.preview.diff_layout = 'split'
             minifugit.status()
             vim.api.nvim_win_set_cursor(
                 assert(minifugit.gsw.win),

@@ -47,7 +47,7 @@ local git = require('minifugit.git')
 ---@field win_prev_buf integer?
 ---@field win_prev_winopts GitStatusWindowOptions?
 ---@field target_win number?
----@field options MinifugitOptions
+---@field config MiniFugitConfig
 ---@field groups table<string, string>
 ---@field highlights table<string, { ensure: fun() }>
 ---@field lines MiniFugitRenderLine[]
@@ -59,78 +59,6 @@ local git = require('minifugit.git')
 ---@field autocmd_group integer?
 local GitStatusWindow = {}
 GitStatusWindow.__index = GitStatusWindow
-
-local HIGHLIGHT_NAMESPACE = 'GitStatusWindow'
-
-local OWNED_BUFFER_FIELDS = {
-    'buf',
-    'diff_buf',
-    'diff_left_buf',
-    'diff_right_buf',
-    'help_buf',
-}
-
-local DIFF_HEADER_GROUP = 'MiniFugitDiffHeader'
-local DIFF_HUNK_HEADER_GROUP = 'MiniFugitDiffHunkHeader'
-local SPINNER_FRAMES = { '-', '\\', '|', '/' }
-
-local HIGHLIGHT_SPECS = {
-    staged = {
-        name = 'MiniFugitStage',
-        sources = { 'Added', 'String' },
-        fallback_fg = 0x98C379,
-    },
-    unstaged = {
-        name = 'MiniFugitUnstage',
-        sources = { 'Removed', 'Error' },
-        fallback_fg = 0xE06C75,
-    },
-    untracked = {
-        name = 'MiniFugitUntracked',
-        sources = { 'DiagnosticInfo', 'Directory', 'Identifier' },
-        fallback_fg = 0x61AFEF,
-    },
-    ignored = {
-        name = 'MiniFugitIgnored',
-        sources = { 'Comment' },
-        fallback_fg = 0x5C6370,
-    },
-    conflict = {
-        name = 'MiniFugitConflict',
-        sources = { 'DiagnosticError', 'ErrorMsg', 'Error' },
-        fallback_fg = 0xE06C75,
-    },
-    head = {
-        name = 'MiniFugitHead',
-        sources = { 'Identifier', 'Keyword' },
-        fallback_fg = 0x61AFEF,
-    },
-    diff_added = {
-        name = 'MiniFugitDiffAdded',
-        sources = { 'DiffAdd', 'Added', 'String' },
-        fallback_bg = 0x2E4D33,
-    },
-    diff_removed = {
-        name = 'MiniFugitDiffRemoved',
-        sources = { 'DiffDelete', 'Removed', 'Error' },
-        fallback_bg = 0x5A2D34,
-    },
-    unpushed = {
-        name = 'MiniFugitUnpushed',
-        sources = { 'Constant', 'Number' },
-        fallback_fg = 0xD19A66,
-    },
-    loading = {
-        name = 'MiniFugitLoading',
-        sources = { 'DiagnosticInfo', 'Identifier' },
-        fallback_fg = 0x61AFEF,
-    },
-    diff_line_nr = {
-        name = 'MiniFugitDiffLineNr',
-        sources = { 'LineNr', 'Comment' },
-        fallback_fg = 0x5C6370,
-    },
-}
 
 ---@return vim.api.keyset.highlight
 local function diff_header_style()
@@ -173,27 +101,29 @@ local function create_fixed_highlight(name, style)
     }
 end
 
+---@param config MiniFugitConfig
 ---@return table<string, string>
-local function create_highlight_groups()
+local function create_highlight_groups(config)
     local groups = {}
 
-    for key, spec in pairs(HIGHLIGHT_SPECS) do
+    for key, spec in pairs(config.highlight_specs) do
         groups[key] = spec.name
     end
 
-    groups.diff_header = DIFF_HEADER_GROUP
-    groups.diff_hunk_header = DIFF_HUNK_HEADER_GROUP
+    groups.diff_header = config.diff_header_hl_name
+    groups.diff_hunk_header = config.diff_hunk_header_hl_name
 
     return groups
 end
 
+---@param config MiniFugitConfig
 ---@return table<string, { ensure: fun() }>
-local function create_highlights()
+local function create_highlights(config)
     local highlights = {}
 
-    for key, spec in pairs(HIGHLIGHT_SPECS) do
+    for key, spec in pairs(config.highlight_specs) do
         highlights[key] = Highlight.new({
-            namespace = HIGHLIGHT_NAMESPACE,
+            namespace = config.highlight_namespace,
             name = spec.name,
             sources = spec.sources,
             fallback_fg = spec.fallback_fg,
@@ -202,9 +132,11 @@ local function create_highlights()
     end
 
     highlights.diff_header =
-        create_fixed_highlight(DIFF_HEADER_GROUP, diff_header_style)
-    highlights.diff_hunk_header =
-        create_fixed_highlight(DIFF_HUNK_HEADER_GROUP, diff_hunk_header_style)
+        create_fixed_highlight(config.diff_header_hl_name, diff_header_style)
+    highlights.diff_hunk_header = create_fixed_highlight(
+        config.diff_hunk_header_hl_name,
+        diff_hunk_header_style
+    )
 
     return highlights
 end
@@ -282,7 +214,7 @@ local function ensure_autocmds(self)
 
             -- Refresh buffer-local keymaps on every entry to stay reliable
             -- through window navigation and bufhidden hide/show cycles.
-            keymaps.attach_buffer_keymaps(self)
+            keymaps.attach_status(self.buf.id, self.config.keymaps_status, self)
         end,
     })
 
@@ -322,7 +254,7 @@ function GitStatusWindow:show()
 
     -- Re-register buffer-local keymaps on every show to ensure they survive
     -- bufhidden='hide' / show cycles without relying on autocmd persistence.
-    keymaps.attach_buffer_keymaps(self)
+    keymaps.attach_status(self.buf.id, self.config.keymaps_status, self)
 
     if
         self.win
@@ -339,12 +271,12 @@ function GitStatusWindow:show()
         return
     end
 
-    if self.options.status.layout == 'replace' then
+    if self.config.options.status.layout == 'replace' then
         self.win, self.win_prev_buf, self.win_prev_winopts =
-            window.replace_current_buffer(self.buf, self.options.status)
+            window.replace_current_buffer(self.buf, self.config.options.status)
     else
         self.win, self.win_prev_winopts =
-            window.create_status_win(self.buf, self.options.status)
+            window.create_status_win(self.buf, self.config.options.status)
     end
 
     selection.move_to_first_entry(self)
@@ -509,7 +441,7 @@ function GitStatusWindow:enter_entry_and_close()
         preview.close_diff(self)
     end
 
-    if self.options.status.layout == 'replace' then
+    if self.config.options.status.layout == 'replace' then
         -- Open the file in the status window itself, then close.
         -- close() will detect the buffer changed and skip restoration.
         local root = git.root()
@@ -564,7 +496,7 @@ function GitStatusWindow:close()
 
     if self.win ~= nil and common.is_valid_win(self.win) then
         if
-            self.options.status.layout == 'replace'
+            self.config.options.status.layout == 'replace'
             and self.win_prev_buf ~= nil
         then
             -- Restore original buffer — but only if the status buffer is
@@ -614,7 +546,7 @@ local function delete_owned_buffer(buf)
 end
 
 function GitStatusWindow:delete_owned_buffers()
-    for _, field in ipairs(OWNED_BUFFER_FIELDS) do
+    for _, field in ipairs(self.config.owned_buffer_fields) do
         delete_owned_buffer(self[field])
         self[field] = nil
     end
@@ -672,7 +604,7 @@ function GitStatusWindow:render_cached()
     local loading_frame
 
     if self.loading_message ~= nil then
-        loading_frame = SPINNER_FRAMES[self.loading_frame]
+        loading_frame = self.config.spinner_frames[self.loading_frame]
     end
 
     self.lines = formatting.render(self.snapshot, self.groups, {
@@ -715,7 +647,9 @@ function GitStatusWindow:start_loading(message)
                 return
             end
 
-            self.loading_frame = (self.loading_frame % #SPINNER_FRAMES) + 1
+            self.loading_frame = (
+                self.loading_frame % #self.config.spinner_frames
+            ) + 1
 
             if self.buf ~= nil and self.buf:is_valid() then
                 self:render_cached()
@@ -738,22 +672,22 @@ function GitStatusWindow:stop_loading()
     end
 end
 
----@param opts MinifugitOptions
+---@param config MiniFugitConfig
 ---@return GitStatusWindow
-function GitStatusWindow.new(opts)
+function GitStatusWindow.new(config)
     local self = setmetatable({}, GitStatusWindow)
 
-    self.options = opts
-    self.groups = create_highlight_groups()
-    self.highlights = create_highlights()
+    self.config = config
+    self.groups = create_highlight_groups(config)
+    self.highlights = create_highlights(config)
     self.lines = {}
     self.diff_created_win = false
     self.diff_left_created_win = false
     self.diff_right_created_win = false
-    self.diff_wrap = opts.preview.wrap
-    self.diff_show_headers = opts.preview.show_metadata
-    self.diff_show_numbers = opts.preview.show_line_numbers
-    self.diff_layout = opts.preview.diff_layout
+    self.diff_wrap = config.options.preview.wrap
+    self.diff_show_headers = config.options.preview.show_metadata
+    self.diff_show_numbers = config.options.preview.show_line_numbers
+    self.diff_layout = config.options.preview.diff_layout
     self.filter = ''
     self.loading_frame = 1
     self.target_win = vim.api.nvim_get_current_win()
@@ -761,22 +695,22 @@ function GitStatusWindow.new(opts)
     ensure_highlights(self)
 
     ---@type BufferOpts
-    local opts = { listed = false, scratch = true, name = 'Minifugit' }
-    self.buf = Buffer.new(opts)
+    local buf_opts = { listed = false, scratch = true, name = 'Minifugit' }
+    self.buf = Buffer.new(buf_opts)
     vim.bo[self.buf.id].buftype = 'nofile'
     vim.bo[self.buf.id].bufhidden = 'hide'
     vim.bo[self.buf.id].swapfile = false
     vim.bo[self.buf.id].filetype = 'minifugit'
 
-    keymaps.attach(self)
+    keymaps.attach(self, config.keymaps_status)
     self:render()
 
-    if self.options.status.layout == 'replace' then
+    if self.config.options.status.layout == 'replace' then
         self.win, self.win_prev_buf, self.win_prev_winopts =
-            window.replace_current_buffer(self.buf, self.options.status)
+            window.replace_current_buffer(self.buf, self.config.options.status)
     else
         self.win, self.win_prev_winopts =
-            window.create_status_win(self.buf, self.options.status)
+            window.create_status_win(self.buf, self.config.options.status)
     end
 
     selection.move_to_first_entry(self)

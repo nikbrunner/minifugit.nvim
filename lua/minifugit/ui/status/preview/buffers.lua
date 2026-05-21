@@ -1,24 +1,19 @@
 require('minifugit.ui.status.preview.types')
 
 local Buffer = require('minifugit.ui.buffer')
+local keymaps = require('minifugit.ui.status.keymaps')
 
 local M = {}
 
 ---@param bufnr integer
 ---@param actions MiniFugitPreviewBufferActions
 function M.set_goto_code_keymap(bufnr, actions)
-    vim.keymap.set('n', '<CR>', actions.goto_code, {
-        buffer = bufnr,
-        desc = 'Go to code under git diff cursor',
-        silent = true,
-    })
+    keymaps.set_goto_code_keymap(bufnr, actions)
 end
 
 ---@param bufnr integer?
 function M.clear_goto_code_keymap(bufnr)
-    if bufnr ~= nil and vim.api.nvim_buf_is_valid(bufnr) then
-        pcall(vim.keymap.del, 'n', '<CR>', { buffer = bufnr })
-    end
+    keymaps.clear_goto_code_keymap(bufnr)
 end
 
 ---@param buf Buffer
@@ -47,86 +42,21 @@ function M.ensure_stacked(self, actions)
     vim.bo[self.diff_buf.id].bufhidden = 'hide'
     vim.bo[self.diff_buf.id].swapfile = false
 
-    vim.keymap.set('n', 'q', actions.close_diff, {
-        buffer = self.diff_buf.id,
-        desc = 'Close git diff preview',
-        silent = true,
-    })
-
-    vim.keymap.set('n', ']h', function()
-        actions.jump_hunk(1)
-    end, {
-        buffer = self.diff_buf.id,
-        desc = 'Jump to next git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '[h', function()
-        actions.jump_hunk(-1)
-    end, {
-        buffer = self.diff_buf.id,
-        desc = 'Jump to previous git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'aw', actions.toggle_wrap, {
-        buffer = self.diff_buf.id,
-        desc = 'Toggle git diff preview wrap',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'an', actions.toggle_numbers, {
-        buffer = self.diff_buf.id,
-        desc = 'Toggle git diff preview line numbers',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'am', actions.toggle_headers, {
-        buffer = self.diff_buf.id,
-        desc = 'Toggle git diff preview metadata',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 's', actions.stage_current_hunk, {
-        buffer = self.diff_buf.id,
-        desc = 'Stage current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'u', actions.unstage_current_hunk, {
-        buffer = self.diff_buf.id,
-        desc = 'Unstage current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'd', actions.discard_current_hunk, {
-        buffer = self.diff_buf.id,
-        desc = 'Discard current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'al', actions.toggle_layout, {
-        buffer = self.diff_buf.id,
-        desc = 'Toggle stacked/split git diff preview layout',
-        silent = true,
-    })
-
-    M.set_goto_code_keymap(self.diff_buf.id, actions)
-
-    vim.keymap.set('n', '?', actions.toggle_help, {
-        buffer = self.diff_buf.id,
-        desc = 'Toggle git mappings help',
-        silent = true,
-    })
+    keymaps.attach_diff_stacked(
+        self.diff_buf.id,
+        self.config.keymaps_diff_stacked,
+        actions
+    )
 
     return self.diff_buf
 end
 
+---@param self GitStatusWindow
 ---@param buf_name string
 ---@param existing Buffer?
 ---@param actions MiniFugitPreviewBufferActions
 ---@return Buffer
-function M.ensure_split(_, buf_name, existing, actions)
+function M.ensure_split(self, buf_name, existing, actions)
     if existing ~= nil and existing:is_valid() then
         return existing
     end
@@ -141,71 +71,7 @@ function M.ensure_split(_, buf_name, existing, actions)
     vim.bo[buf.id].bufhidden = 'hide'
     vim.bo[buf.id].swapfile = false
 
-    vim.keymap.set('n', 'q', actions.close_diff, {
-        buffer = buf.id,
-        desc = 'Close git diff preview',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'aw', actions.toggle_wrap, {
-        buffer = buf.id,
-        desc = 'Toggle git diff preview wrap',
-        silent = true,
-    })
-
-    vim.keymap.set('n', ']h', function()
-        vim.cmd('normal! ]c')
-    end, {
-        buffer = buf.id,
-        desc = 'Jump to next git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', '[h', function()
-        vim.cmd('normal! [c')
-    end, {
-        buffer = buf.id,
-        desc = 'Jump to previous git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'an', actions.toggle_split_numbers, {
-        buffer = buf.id,
-        desc = 'Toggle git diff preview line numbers',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 's', actions.stage_current_hunk, {
-        buffer = buf.id,
-        desc = 'Stage current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'u', actions.unstage_current_hunk, {
-        buffer = buf.id,
-        desc = 'Unstage current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'd', actions.discard_current_hunk, {
-        buffer = buf.id,
-        desc = 'Discard current git diff hunk',
-        silent = true,
-    })
-
-    vim.keymap.set('n', 'l', actions.toggle_layout, {
-        buffer = buf.id,
-        desc = 'Toggle stacked/split git diff preview layout',
-        silent = true,
-    })
-
-    M.set_goto_code_keymap(buf.id, actions)
-
-    vim.keymap.set('n', '?', actions.toggle_help, {
-        buffer = buf.id,
-        desc = 'Toggle git mappings help',
-        silent = true,
-    })
+    keymaps.attach_diff_split(buf.id, self.config.keymaps_diff_split, actions)
 
     return buf
 end

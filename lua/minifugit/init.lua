@@ -1,42 +1,11 @@
----@class MinifugitPreviewOptions
----@field wrap boolean
----@field show_line_numbers boolean
----@field show_metadata boolean
----@field diff_layout 'stacked'|'split'|'auto'
----@field diff_auto_threshold integer
-
----@class MinifugitStatusOptions
----@field width number
----@field min_width integer
----@field layout 'topleft'|'replace'
-
----@class MinifugitOptions
----@field preview MinifugitPreviewOptions
----@field status MinifugitStatusOptions
-
-local defaults = {
-    preview = {
-        wrap = false,
-        show_line_numbers = true,
-        show_metadata = true,
-        diff_layout = 'stacked',
-        diff_auto_threshold = 120,
-    },
-    status = {
-        width = 0.4,
-        min_width = 20,
-        layout = 'topleft',
-    },
-}
-
 ---@class Minifugit
 ---@field gsw GitStatusWindow?
 ---@field did_setup boolean
----@field options MinifugitOptions
+---@field config MiniFugitConfig
 local M = {
     gsw = nil,
     did_setup = false,
-    options = vim.deepcopy(defaults),
+    config = require('minifugit.config').resolve(),
 }
 
 local log = require('minifugit.log')
@@ -117,7 +86,7 @@ function M.status()
         M.gsw:show()
     else
         local GitStatusWindow = require('minifugit.ui.status')
-        local gsw = GitStatusWindow.new(M.options)
+        local gsw = GitStatusWindow.new(M.config)
         attach_status_buffer_autocmd(gsw)
         M.gsw = gsw
     end
@@ -129,98 +98,9 @@ end
 
 ---@param opts MinifugitOptions?
 function M.setup(opts)
-    vim.validate('opts', opts, 'table', true, '`opts` should be a table')
-
-    opts = opts or {}
-    vim.validate('opts.preview', opts.preview, 'table', true)
-    vim.validate('opts.status', opts.status, 'table', true)
-
-    if opts.preview ~= nil then
-        vim.validate('opts.preview.wrap', opts.preview.wrap, 'boolean', true)
-        vim.validate(
-            'opts.preview.show_line_numbers',
-            opts.preview.show_line_numbers,
-            'boolean',
-            true
-        )
-        vim.validate(
-            'opts.preview.show_metadata',
-            opts.preview.show_metadata,
-            'boolean',
-            true
-        )
-        vim.validate(
-            'opts.preview.diff_layout',
-            opts.preview.diff_layout,
-            'string',
-            true
-        )
-        vim.validate(
-            'opts.preview.diff_auto_threshold',
-            opts.preview.diff_auto_threshold,
-            'number',
-            true
-        )
-
-        if
-            opts.preview.diff_layout ~= nil
-            and opts.preview.diff_layout ~= 'stacked'
-            and opts.preview.diff_layout ~= 'split'
-            and opts.preview.diff_layout ~= 'auto'
-        then
-            error(
-                "opts.preview.diff_layout must be 'stacked', 'split', or 'auto'"
-            )
-        end
-
-        if
-            opts.preview.diff_auto_threshold ~= nil
-            and opts.preview.diff_auto_threshold < 1
-        then
-            error('opts.preview.diff_auto_threshold must be >= 1')
-        end
-    end
-
-    if opts.status ~= nil then
-        vim.validate('opts.status.width', opts.status.width, 'number', true)
-        vim.validate(
-            'opts.status.min_width',
-            opts.status.min_width,
-            'number',
-            true
-        )
-
-        if opts.status.width ~= nil then
-            if opts.status.width <= 0 or opts.status.width > 1 then
-                error('opts.status.width must be a number between 0 and 1')
-            end
-        end
-
-        if opts.status.min_width ~= nil then
-            if opts.status.min_width < 1 then
-                error('opts.status.min_width must be >= 1')
-            end
-        end
-
-        if opts.status.layout ~= nil then
-            vim.validate(
-                'opts.status.layout',
-                opts.status.layout,
-                'string',
-                true
-            )
-
-            if
-                opts.status.layout ~= 'topleft'
-                and opts.status.layout ~= 'replace'
-            then
-                error("opts.status.layout must be 'topleft' or 'replace'")
-            end
-        end
-    end
-
+    local config = require('minifugit.config')
+    M.config = config.resolve(opts)
     M.did_setup = true
-    M.options = vim.tbl_deep_extend('force', vim.deepcopy(defaults), opts)
 
     return M
 end
