@@ -3,9 +3,7 @@ local spec_dir = vim.fs.dirname(
     vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p')
 )
 ---@type FluxTestHelpers
-local helpers = dofile(
-    vim.fs.joinpath(vim.fs.dirname(spec_dir), 'helpers.lua')
-)
+local helpers = dofile(vim.fs.joinpath(vim.fs.dirname(spec_dir), 'helpers.lua'))
 
 ---@param buf integer
 ---@return string[]
@@ -33,6 +31,19 @@ local function has_keymap(buf, lhs)
     for _, map in ipairs(maps) do
         if map.lhs == lhs then
             return true
+        end
+    end
+    return false
+end
+
+---@param buf integer
+---@param lhs string
+---@return boolean
+local function keymap_has_nowait(buf, lhs)
+    local maps = vim.api.nvim_buf_get_keymap(buf, 'n')
+    for _, map in ipairs(maps) do
+        if map.lhs == lhs then
+            return map.nowait == 1
         end
     end
     return false
@@ -173,12 +184,9 @@ describe('flux keymaps', function()
 
         -- We should now be in the tracked.txt file buffer
         local file_buf = vim.api.nvim_get_current_buf()
-        local expected_path = vim.fn.resolve(
-            vim.fs.joinpath(repo, 'tracked.txt')
-        )
-        local actual_path = vim.fn.resolve(
-            vim.api.nvim_buf_get_name(file_buf)
-        )
+        local expected_path =
+            vim.fn.resolve(vim.fs.joinpath(repo, 'tracked.txt'))
+        local actual_path = vim.fn.resolve(vim.api.nvim_buf_get_name(file_buf))
         assert.are.equal(expected_path, actual_path)
 
         -- Switch back to status window
@@ -300,5 +308,105 @@ describe('flux keymaps', function()
 
         -- Status should be focused with keymaps
         assert.is_true(has_keymap(status_buf, '='))
+    end)
+
+    it(
+        'status keymaps are restored via WinEnter after being cleared',
+        function()
+            flux.status()
+            local status_buf = flux.gsw.buf.id
+
+            -- Verify keymaps exist
+            assert.is_true(has_keymap(status_buf, '='))
+            assert.is_true(has_keymap(status_buf, 'o'))
+
+            -- Simulate keymaps being lost (e.g. by another plugin clearing them)
+            pcall(vim.keymap.del, 'n', '=', { buffer = status_buf })
+            pcall(vim.keymap.del, 'n', 'o', { buffer = status_buf })
+            assert.is_false(has_keymap(status_buf, '='))
+            assert.is_false(has_keymap(status_buf, 'o'))
+
+            -- Navigate away and back to trigger WinEnter re-attachment
+            vim.cmd.wincmd('w')
+            vim.api.nvim_set_current_win(flux.gsw.win)
+
+            -- Keymaps should be restored
+            assert.is_true(has_keymap(status_buf, '='))
+            assert.is_true(has_keymap(status_buf, 'o'))
+        end
+    )
+
+    it('status keymaps have nowait = true', function()
+        flux.status()
+        local status_buf = flux.gsw.buf.id
+
+        assert.is_true(has_keymap(status_buf, '='))
+        assert.is_true(keymap_has_nowait(status_buf, '='))
+        assert.is_true(keymap_has_nowait(status_buf, 'o'))
+        assert.is_true(keymap_has_nowait(status_buf, 'q'))
+        assert.is_true(keymap_has_nowait(status_buf, 's'))
+    end)
+
+    it(
+        'status keymaps are re-attached after close_diff returns focus',
+        function()
+            helpers.write_file(
+                vim.fs.joinpath(repo, 'tracked.txt'),
+                { 'one', 'two' }
+            )
+
+            flux.status()
+            local status_buf = flux.gsw.buf.id
+
+            -- Open diff
+            vim.api.nvim_set_current_win(flux.gsw.win)
+            vim.api.nvim_win_set_cursor(
+                flux.gsw.win,
+                { row_containing(status_buf, 'tracked.txt'), 0 }
+            )
+            vim.cmd.normal('=')
+
+            assert.is_not_nil(flux.gsw.diff_buf)
+            local diff_buf = flux.gsw.diff_buf.id
+            assert.is_true(vim.api.nvim_buf_is_valid(diff_buf))
+
+            -- Clear status keymaps to simulate loss during diff operations
+            pcall(vim.keymap.del, 'n', '=', { buffer = status_buf })
+            pcall(vim.keymap.del, 'n', 'o', { buffer = status_buf })
+            assert.is_false(has_keymap(status_buf, '='))
+            assert.is_false(has_keymap(status_buf, 'o'))
+
+            -- Close diff via q; close_diff should re-attach keymaps
+            vim.api.nvim_set_current_win(flux.gsw.diff_win)
+            vim.cmd.normal('q')
+
+            -- Status keymaps should be restored after close_diff
+            assert.is_true(has_keymap(status_buf, '='))
+            assert.is_true(has_keymap(status_buf, 'o'))
+        end
+    )
+
+    it('diff keymaps have nowait = true', function()
+        helpers.write_file(
+            vim.fs.joinpath(repo, 'tracked.txt'),
+            { 'one', 'two' }
+        )
+
+        flux.status()
+        local status_buf = flux.gsw.buf.id
+
+        -- Open diff
+        vim.api.nvim_set_current_win(flux.gsw.win)
+        vim.api.nvim_win_set_cursor(
+            flux.gsw.win,
+            { row_containing(status_buf, 'tracked.txt'), 0 }
+        )
+        vim.cmd.normal('=')
+
+        assert.is_not_nil(flux.gsw.diff_buf)
+        local diff_buf = flux.gsw.diff_buf.id
+        assert.is_true(keymap_has_nowait(diff_buf, 'q'))
+        assert.is_true(keymap_has_nowait(diff_buf, 's'))
+        assert.is_true(keymap_has_nowait(diff_buf, 'u'))
     end)
 end)

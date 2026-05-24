@@ -13,6 +13,7 @@ local preview_buffers = require('flux.ui.status.preview.buffers')
 local display = require('flux.ui.status.preview.display')
 local window_state = require('flux.ui.status.preview.window_state')
 local preview_util = require('flux.ui.status.preview.util')
+local keymaps = require('flux.ui.status.keymaps')
 
 local M = {}
 
@@ -440,6 +441,11 @@ function M.close_diff(self)
 
     if self.win ~= nil and common.is_valid_win(self.win) then
         vim.api.nvim_set_current_win(self.win)
+
+        -- Re-attach status keymaps after diff close. Window/buffer transitions
+        -- during diff operations can cause buffer-local keymaps to be lost;
+        -- BufEnter may not fire if we never left the status buffer.
+        keymaps.attach_status(self.buf.id, self.config.keymaps_status, self)
     end
 end
 

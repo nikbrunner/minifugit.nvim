@@ -34,6 +34,7 @@ function M.attach_status(buf_id, keymaps, self)
                     buffer = buf_id,
                     desc = entry.desc,
                     silent = true,
+                    nowait = true,
                 })
             end
         end
@@ -65,6 +66,7 @@ function M.attach_diff_stacked(buf_id, keymaps, actions)
                         buffer = buf_id,
                         desc = entry.desc,
                         silent = true,
+                        nowait = true,
                     })
                 end
             end
@@ -97,6 +99,7 @@ function M.attach_diff_split(buf_id, keymaps, actions)
                         buffer = buf_id,
                         desc = entry.desc,
                         silent = true,
+                        nowait = true,
                     })
                 end
             end
@@ -115,6 +118,7 @@ function M.attach_help(buf_id, keymaps, close_fn)
                     buffer = buf_id,
                     desc = entry.desc,
                     silent = true,
+                    nowait = true,
                 })
             end
         end
@@ -128,6 +132,7 @@ function M.set_goto_code_keymap(bufnr, actions)
         buffer = bufnr,
         desc = 'Go to code under git diff cursor',
         silent = true,
+        nowait = true,
     })
 end
 

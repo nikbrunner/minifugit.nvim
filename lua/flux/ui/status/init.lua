@@ -218,6 +218,36 @@ local function ensure_autocmds(self)
         end,
     })
 
+    -- Re-attach keymaps when entering any window that shows the flux buffer.
+    -- BufEnter alone is not sufficient: switching back to an already-visible
+    -- flux window from a diff preview or file view may not re-trigger
+    -- BufEnter if the buffer was never left (e.g. splits, focus changes).
+    -- WinEnter covers those gaps and keeps =, o, etc. reliable.
+    vim.api.nvim_create_autocmd('WinEnter', {
+        group = self.autocmd_group,
+        callback = function()
+            if self.buf == nil or not self.buf:is_valid() then
+                return
+            end
+
+            local win = vim.api.nvim_get_current_win()
+
+            if vim.api.nvim_win_get_buf(win) ~= self.buf.id then
+                return
+            end
+
+            -- Update window tracking when re-entering the status window
+            -- from outside a BufEnter path (e.g. returning from a diff).
+            if self.win ~= win then
+                self.win = win
+                self.win_prev_winopts = window.capture_winopts(win)
+            end
+
+            window.configure_status_win(win)
+            keymaps.attach_status(self.buf.id, self.config.keymaps_status, self)
+        end,
+    })
+
     vim.api.nvim_create_autocmd({ 'BufLeave', 'BufHidden' }, {
         group = self.autocmd_group,
         buffer = self.buf.id,
